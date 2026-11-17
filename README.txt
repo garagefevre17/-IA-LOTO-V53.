@@ -1,9 +1,6 @@
-IA LOTO V53 — Contrôles renforcés
-
-Déployer les 4 fichiers à la racine Netlify.
-
-Nouveautés : URL distante HTTPS facultative et vérifiée à chaque ouverture si activée ; échec de synchronisation visible et bloquant ; contrôle des dates ; export bloqué si archive manifestement trop ancienne ; génération d’une demande RFC3161 (.tsq) à partir du SHA-256 du rapport JSON.
-
-IMPORTANT : L’URL distante doit être un CSV compatible avec les colonnes FDJ, accessible via CORS. Une archive ZIP ne peut pas être chargée via cette fonction. Aucun point d’accès FDJ n’est fourni ou garanti. Le .tsq N’EST PAS un horodatage signé : demander un .tsr à un tiers, puis vérifier cryptographiquement la réponse et la chaîne de confiance (ex. OpenSSL). Le journal local n’est pas une preuve. Les tests automatiques ne remplacent pas les essais Safari/Netlify.
-
-La méthode Froids 300 n'améliore pas les probabilités de gain.
+IA LOTO V54 — CORRECTION DE LA PREUVE CRYPTOGRAPHIQUE
+La V53 exportait un rapport JSON indenté mais calculait le SHA-256 de la version compacte pour la requête TSQ. V54 exporte exactement les mêmes octets JSON compacts que ceux hachés dans la TSQ.
+Procédure : charger le CSV, calculer, cliquer sur « Créer la demande d'horodatage .tsq » puis conserver ENSEMBLE les fichiers froids300-DATE.json et prediction-DATE.tsq.
+Contrôle indépendant sur ordinateur : openssl dgst -sha256 froids300-DATE.json ; openssl ts -query -in prediction-DATE.tsq -text ; comparer les empreintes.
+Le .tsq n'est pas une preuve d'antériorité. Faire signer la requête par une TSA et vérifier le .tsr avec la chaîne de certificats de confiance de la TSA.
+IMPORTANT : tests interactifs Safari et déploiement GitHub Pages non effectués. Actualisation FDJ toujours dépendante d'une URL CSV CORS ou d'un import manuel. Aucun avantage prédictif démontré.
