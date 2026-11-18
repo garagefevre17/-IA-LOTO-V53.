@@ -1,0 +1,30 @@
+'use strict';
+// Headless browser-DOM simulation. Does not replace a real Safari test.
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const ids=['emTarget','emWindow','emOutput','emTestOutput','emExport','emExportTest','emFile','emAdd','emManualNums','emManualStars','emManualDate','emDownloadHistory','emGenerate','emBacktest'];
+const elements=Object.fromEntries(ids.map(id=>[id,{value:'',textContent:'',disabled:false,files:[],addEventListener(){}}]));
+elements.emWindow.value='20';
+const sandbox={document:{getElementById:id=>elements[id]||null,createElement:()=>({click(){},remove(){}}),body:{append(){}}},window:{},console,Date,Intl,Blob,URL,Set,Map,Array,Object,Number,String,Error,Promise,setTimeout};
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync('euromillions.js','utf8'),sandbox);
+const lab=sandbox.window.EMLab;
+assert(lab,'EuroMillions module not initialized');
+const eq=(a,b)=>assert.strictEqual(JSON.stringify(a),JSON.stringify(b));
+assert.throws(()=>lab.row('2026-11-17',[1,1,3,4,5],[1,2]),/distincts/);
+assert.throws(()=>lab.row('2026-11-18',[1,2,3,4,5],[1,2]),/mardi ou vendredi/);
+assert.throws(()=>lab.row('2026-11-17',[1,2,3,4,51],[1,2]),/entre 1 et 50/);
+assert.throws(()=>lab.row('2026-11-17',[1,2,3,4,5],[1,13]),/entre 1 et 12/);
+const rows=[];let day=new Date('2026-01-02T12:00:00Z');
+for(let i=0;i<60;i++) {const d=day.toISOString().slice(0,10);rows.push(`${d};${[1,2,3,4,5].map(x=>x+i%10).join(';')};1;2`);day.setUTCDate(day.getUTCDate()+(day.getUTCDay()===5?4:3));}
+const data=lab.parse('date;n1;n2;n3;n4;n5;e1;e2\n'+rows.join('\n'));
+assert.strictEqual(data.length,60);
+assert.strictEqual(lab.anomalies(data).length,0);
+const p=lab.predict(data.slice(0,30),20,1);
+assert.strictEqual(p.nums.length,5);assert.strictEqual(p.stars.length,2);
+assert.throws(()=>lab.parse('date;n1;n2;n3;n4;n5;e1;e2\n'+rows[0]+'\n'+rows[0]),/double/);
+const gap=lab.parse('date;n1;n2;n3;n4;n5;e1;e2\n'+[...rows.slice(0,5),...rows.slice(6)].join('\n'));
+assert(lab.anomalies(gap).length>0);
+elements.emGenerate.onclick();
+assert(elements.emOutput.textContent.includes('Calcul impossible'),'Missing-history UI error not shown');
+assert(elements.emExport.disabled,'Export not disabled after failed forecast');
+console.log('EuroMillions JS: 10 checks passed (module init, invalid numbers, calendar, CSV, gaps, forecast, UI error).');

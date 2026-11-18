@@ -1,0 +1,22 @@
+IA LOTO — Audit de l'application unique (18 novembre 2026)
+
+Application de base conservée : index.html, app.js, euromillions.js, prospectif.js, loto_201911.csv.
+
+CORRECTION PRIORITAIRE :
+- automation/evaluate.py vérifie maintenant chaque reçu RFC 3161 via OpenSSL avec une chaîne de confiance configurée et contrôle la date du jeton avant de produire le bilan.
+- Le workflow results.yml transmet TSA_CA_PEM_B64 au vérificateur.
+- Une prévision sans preuve ou avec preuve invalide fait échouer le bilan (pas de certification implicite).
+- Le bilan contient les SHA-256 des prévisions et des reçus vérifiés.
+- Le titre de l'application ne suggère plus une nouvelle version logicielle indépendante.
+
+LIMITES NON RESOLUES :
+- Aucune URL FDJ officielle n'est configurée ni authentifiée. HTTPS seul ne suffit pas à prouver l'origine des données.
+- Les workflows ne sont pas déployés ni testés sur le dépôt GitHub réel.
+- TSA_URL et TSA_CA_PEM_B64 doivent être configurés et validés sur GitHub.
+- Les tirages EuroMillions ne sont pas automatisés côté serveur.
+- L'historique LOTO embarqué n'est pas une preuve d'authenticité FDJ.
+- Le logiciel ne démontre aucun avantage prédictif sur le hasard.
+- Les workflows GitHub Actions peuvent être retardés et ne constituent pas une garantie d'exécution à heure fixe.
+
+SECURITE :
+Ne pas installer en remplacement de la version en ligne sans sauvegarde et test du workflow GitHub.

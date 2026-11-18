@@ -1,0 +1,12 @@
+APPLICATION UNIQUE — CORRECTIF DES GRILLES PÉRIMÉES
+
+- Date LOTO par défaut : prochain lundi/mercredi/samedi admissible selon Europe/Paris.
+- Aucune nouvelle prévision LOTO pour une ancienne date ni après 18h le jour du tirage.
+- Rejet si le CSV ne contient pas le tirage immédiatement précédent.
+- Rejet si la date cible est déjà présente dans les données.
+- Contrôles identiques sur les boutons de prévision comparative et adaptative.
+- Les backtests historiques restent disponibles.
+- EuroMillions : blocage des dates passées et après 18h le jour cible.
+- Les données FDJ ne sont PAS synchronisées automatiquement ni certifiées par ces corrections.
+- 18h est une limite technique conservatrice, pas l'heure officielle de clôture des jeux.
+- Aucune amélioration de probabilité de gain n'est revendiquée.

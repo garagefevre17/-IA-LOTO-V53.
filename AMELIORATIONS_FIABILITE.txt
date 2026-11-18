@@ -1,0 +1,13 @@
+IA LOTO — Livraison fiabilité et diagnostic
+
+Ajouts :
+- automation/healthcheck.py : diagnostic local reproductible, statut explicite des fichiers, CSV, fraîcheur, configuration et validations externes.
+- automation/test_healthcheck.py : 4 tests de régression du diagnostic (absence de fichiers, configuration non prouvée, CSV invalide, CSV périmé).
+- .github/workflows/quality.yml : exécute tests Python, contrôles JavaScript et diagnostic à chaque push/pull request, publie le rapport comme artefact.
+- diagnostic_fiabilite.json : rapport généré sur le ZIP livré.
+
+Vérifications effectuées localement : 28 tests Python OK, 10 contrôles JavaScript OK, 3 fichiers JavaScript syntaxiquement valides.
+
+IMPORTANT : un contrôle de présence de configuration ne valide pas une connexion externe. L'application n'a pas été testée sur Safari réel, GitHub hébergé, source FDJ officielle ni autorité TSA. La fiabilité des prédictions gagnantes n'est pas améliorée par ces contrôles.
+
+Installation : déposer le contenu du ZIP à la racine du dépôt GitHub existant (incluant le dossier caché .github). Le workflow 'IA LOTO - tests de qualite' sera alors disponible dans l'onglet Actions. Il ne remplace pas la configuration des quatre secrets nécessaires à l'automatisation.

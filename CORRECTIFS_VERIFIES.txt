@@ -1,0 +1,12 @@
+IA LOTO - corrections vérifiées, 18 novembre 2026
+
+Application unique conservée : LOTO, EuroMillions, Froids 300, analyses et automatisation.
+
+- Ajout de neuf tests de non-régression Python : protocole figé, calendrier, dates en double, jour incorrect, historique incomplet, source périmée, tirage futur, jour sans tirage, heure limite.
+- Les tests utilisent désormais une copie figée de l’historique au 16/11/2026. Ils ne deviennent donc pas invalides lorsque le CSV de production est mis à jour.
+- Les deux workflows GitHub Actions exécutent ces tests avant leurs opérations.
+- Documentation clarifiée : une exécution programmée GitHub Actions peut être retardée ou manquée.
+
+LIMITES : aucune URL FDJ officielle ni autorité TSA n’est fournie/configurée. L’archive ne peut donc pas garantir la synchronisation, la certification ni le fonctionnement autonome sur ton dépôt sans installation et tests réels.
+
+Les numéros d’une grille ne deviennent pas plus probables grâce à ces corrections.

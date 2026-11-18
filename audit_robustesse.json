@@ -1,0 +1,24 @@
+{
+  "kind": "historical_monte_carlo_null_comparison_not_prospective",
+  "csv_sha256": "b7af95fc3afaf90a51b861e038cf9c328de55a224800808d72c79b9422ae7111",
+  "draws": 300,
+  "simulations": 2000,
+  "seed": 20261118,
+  "froids300_main_hits": 156,
+  "main_exact_one_sided_p_greater_or_equal": 0.41036953749828836,
+  "random_main_expected": 153.0612244897959,
+  "random_main_95pct_interval": [
+    132,
+    176
+  ],
+  "main_one_sided_p_greater_or_equal": 0.4217891054472764,
+  "froids300_chance_hits": 27,
+  "chance_exact_one_sided_p_greater_or_equal": 0.7451784501414298,
+  "random_chance_expected": 30.0,
+  "random_chance_95pct_interval": [
+    20,
+    40
+  ],
+  "chance_one_sided_p_greater_or_equal": 0.7611194402798601,
+  "caveat": "Historical comparison only. No independent prospective proof, no correction for model selection or repeated testing, no demonstrated predictive edge."
+}

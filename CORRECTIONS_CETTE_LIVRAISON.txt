@@ -1,0 +1,8 @@
+IA LOTO - correctifs supplémentaires
+- Validation des arguments avant lecture des URL de source.
+- Pas de redirection pour les requêtes à l'autorité d'horodatage.
+- Contrôle des bilans existants contre la prévision, le reçu et les résultats courants.
+- Fermeture explicite de GITHUB_OUTPUT.
+- Protocole Froids 300 inchangé.
+- 10 tests Python réussis et 3 syntaxes JavaScript vérifiées.
+LIMITES: connexion FDJ et TSA non validées, exécution GitHub non testée, Safari non testé.

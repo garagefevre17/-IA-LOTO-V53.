@@ -1,0 +1,28 @@
+IA LOTO — AUDIT STATISTIQUE REPRODUCTIBLE — 18/11/2026
+
+Source : loto_201911.csv fourni dans l'archive (origine officielle non authentifiée).
+Moteur : Froids 300 inchangé.
+Méthode : backtest chronologique 300 tirages, sans fuite de données futures.
+Résultat : 156 numéros principaux trouvés contre 153,061 attendus pour 300 tickets aléatoires.
+Numéro Chance : 27 réussites contre 30 attendues.
+
+NOUVEAU : 2 000 simulations Monte Carlo indépendantes de tickets aléatoires :
+- intervalle central 95 % pour numéros principaux : 132 à 176
+- probabilité simulée d'obtenir au moins 156 succès : 0,4218
+- intervalle central 95 % pour numéros Chance : 20 à 40
+- probabilité simulée d'obtenir au moins 27 numéros Chance : 0,7611
+
+INTERPRÉTATION : aucun avantage statistique établi. Les probabilités simulées ne
+sont pas des preuves de supériorité ou de causalité ; attention aux essais multiples.
+Le CSV doit être authentifié indépendamment et les prévisions futures horodatées.
+
+TESTS : 19 tests Python + 10 contrôles JavaScript, 3 vérifications de syntaxe JS.
+Les tests locaux ne couvrent PAS Safari sur iPhone, la FDJ en direct, l'autorité TSA
+réelle, ni l'exécution des workflows GitHub Actions. Ces étapes exigent un test
+sur l'environnement déployé et des secrets configurés.
+
+REPRODUIRE :
+python -m unittest discover -s automation -p 'test_*.py' -v
+node automation/test_browser.js
+python automation/benchmark.py
+python automation/robustness.py --simulations 2000

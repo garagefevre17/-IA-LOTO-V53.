@@ -1,0 +1,30 @@
+IA LOTO — AUDIT STATISTIQUE EXACT ET TESTS RENFORCES
+Date : 18 novembre 2026
+
+Travail sur l'application unique fournie par l'utilisateur.
+
+AMELIORATION
+- Nouveau automation/exact_stats.py : loi hypergéométrique exacte du nombre de correspondances parmi 5 numéros tirés sur 49, convoluée sur les tirages de contrôle.
+- Calcul exact de la probabilité unilatérale du score des numéros Chance par loi binomiale (p=0,1).
+- automation/robustness.py conserve ses 2000 simulations pour comparaison, et ajoute les deux probabilités exactes.
+- Nouveau automation/test_exact_stats.py : 5 tests (distribution vide, cas 5/5, conservation de masse et espérance, chance, arguments invalides).
+- Le premier passage des tests a révélé une validation d'argument manquante dans le nouveau module; corrigée puis retestée.
+
+RESULTATS HISTORIQUES (300 tirages, données du ZIP)
+- Froids 300 : 156 bons numéros principaux ; espérance hasard 153,0612 ; p exacte unilatérale 0,4103695375.
+- Chance : 27 bons numéros ; espérance hasard 30 ; p exacte unilatérale 0,7451784501.
+- Aucune supériorité démontrée.
+- Ce n'est pas une évaluation prospective indépendante.
+
+TESTS LOCAUX
+- 24 tests Python : réussis.
+- 10 vérifications JavaScript EuroMillions en DOM simulé : réussies.
+- Contrôles de syntaxe JavaScript : réussis.
+- Audit des deux fichiers GitHub Actions : configuration présente mais non exécutée sur le dépôt utilisateur.
+
+LIMITES NON RESOLUES
+- Aucune source FDJ officielle vivante n'a été authentifiée dans cette exécution.
+- Aucun reçu TSA RFC3161 réel n'a été obtenu ni vérifié en production.
+- Aucun test interactif Safari sur iPhone réel, aucun test GitHub Actions distant.
+- Le moteur ne démontre aucune capacité à prédire les tirages mieux que le hasard.
+- Impossible de garantir zéro défaut logiciel ou zéro échec d'exécution programmée.

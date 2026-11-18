@@ -1,0 +1,16 @@
+IA LOTO — Correction du contrôle d'intégrité et tests
+
+DÉFAUT CORRIGÉ : l'ancien workflow quality.yml générait un manifeste d'empreintes SHA-256 puis vérifiait immédiatement ce même manifeste. Un fichier modifié pouvait donc passer ce contrôle.
+
+NOUVEAU : code_baseline.json est un état de référence versionné. Le workflow compare les fichiers de code à cette référence SANS la régénérer. Une modification de code non accompagnée d'une mise à jour explicite du manifeste provoque un échec. Le CSV historique est volontairement exclu de cette référence car il est actualisé par les automatisations. Son empreinte reste dans le diagnostic et l'inventaire courant.
+
+Pour mettre à jour volontairement le code : relire les changements, exécuter 'python automation/code_integrity.py --update', puis enregistrer les modifications et le nouveau manifeste dans le même commit. Une personne capable de modifier à la fois le code et le manifeste peut toujours contourner ce contrôle : ce n'est PAS une signature indépendante.
+
+Pour tester localement :
+python -m unittest discover -s automation -p 'test_*.py' -v
+node automation/test_browser.js
+python automation/code_integrity.py
+python automation/integrity.py --verify
+python automation/healthcheck.py --output diagnostic_fiabilite.json
+
+Limites : pas de source FDJ authentifiée ni de test TSA réel; pas de validation de GitHub Actions ou Safari sur appareil. Aucun avantage prédictif démontré.

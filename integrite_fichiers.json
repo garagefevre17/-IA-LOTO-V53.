@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "kind": "local_file_inventory_not_external_attestation",
+  "complete": true,
+  "missing": [],
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 10086,
+      "sha256": "a6698519bdb994bc657d8c7f41590d1bcc4614ba13106b6673ded41c6749713c"
+    },
+    {
+      "path": "app.js",
+      "bytes": 37784,
+      "sha256": "5cb502bcbd7e0fcec1bdef447ec2e1bab2a2a72a05d6bce18f9acc2f6a9d386c"
+    },
+    {
+      "path": "euromillions.js",
+      "bytes": 10300,
+      "sha256": "c9d4fb89342aa41dfd8b8a759ed73a5d672dc545a5e7dceff31886681865736a"
+    },
+    {
+      "path": "prospectif.js",
+      "bytes": 3141,
+      "sha256": "35b87bbfb4b3478401eb4e40e04de32d5a7899a22c56afdefa37d21d5a42e030"
+    },
+    {
+      "path": "loto_201911.csv",
+      "bytes": 433126,
+      "sha256": "b7af95fc3afaf90a51b861e038cf9c328de55a224800808d72c79b9422ae7111"
+    },
+    {
+      "path": "automation/forecast.py",
+      "bytes": 4546,
+      "sha256": "782e38971463ffee6fb97f4b9b78a3505ca1624e2a8d6a1754947b8171d654b6"
+    },
+    {
+      "path": "automation/evaluate.py",
+      "bytes": 6571,
+      "sha256": "5b4b6cf65fdd9ad2072d33dbf0e4c9e7d50baed9d3696e2ac1f9db3cc0b38a11"
+    },
+    {
+      "path": "automation/validate_source.py",
+      "bytes": 1287,
+      "sha256": "747aeecb04fa6bc176c783f5b39505ce2a0723bd0366a523bffd5fba1f968ef9"
+    },
+    {
+      "path": "automation/verify_timestamp.py",
+      "bytes": 1737,
+      "sha256": "24c37cb5b12ed85fdc7e1aeed06855a4b192957505ea972baf4b36c44d94825b"
+    },
+    {
+      "path": ".github/workflows/prospective.yml",
+      "bytes": 3549,
+      "sha256": "0aafb273cf7e70f7543457e40a33fe214d08c6f22b9d63e3147ceb7d0cf78b79"
+    },
+    {
+      "path": ".github/workflows/results.yml",
+      "bytes": 2117,
+      "sha256": "340cd67074afd4af56bdbad7c5742d537db05cf9ee811747106346635176254b"
+    },
+    {
+      "path": ".github/workflows/quality.yml",
+      "bytes": 1319,
+      "sha256": "9e13d51d0211785735436866f52d34850a434941db476fe888afc38b98966dfa"
+    }
+  ]
+}

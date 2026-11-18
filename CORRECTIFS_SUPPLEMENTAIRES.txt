@@ -1,0 +1,10 @@
+IA LOTO — correctifs complémentaires
+
+1. Le parseur CSV LOTO refuse les dates hors calendrier lundi/mercredi/samedi.
+2. Il refuse les trous dans le calendrier des tirages chargés.
+3. La date EuroMillions est calculée selon Europe/Paris.
+4. La génération EuroMillions refuse une date autre que le prochain tirage admissible.
+5. La date EuroMillions codée en dur est retirée du HTML.
+6. Le texte sur la certification RFC3161 est clarifié.
+
+Limites : source FDJ non authentifiée; GitHub Actions non testé à distance; reçu TSA réel non vérifié; Safari non testé. Froids 300 inchangé.

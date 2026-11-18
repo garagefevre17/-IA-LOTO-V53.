@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "purpose": "committed_code_baseline_not_independent_proof",
+  "sha256": {
+    "index.html": "a6698519bdb994bc657d8c7f41590d1bcc4614ba13106b6673ded41c6749713c",
+    "app.js": "5cb502bcbd7e0fcec1bdef447ec2e1bab2a2a72a05d6bce18f9acc2f6a9d386c",
+    "euromillions.js": "c9d4fb89342aa41dfd8b8a759ed73a5d672dc545a5e7dceff31886681865736a",
+    "prospectif.js": "35b87bbfb4b3478401eb4e40e04de32d5a7899a22c56afdefa37d21d5a42e030",
+    "automation/forecast.py": "782e38971463ffee6fb97f4b9b78a3505ca1624e2a8d6a1754947b8171d654b6",
+    "automation/evaluate.py": "5b4b6cf65fdd9ad2072d33dbf0e4c9e7d50baed9d3696e2ac1f9db3cc0b38a11",
+    "automation/validate_source.py": "747aeecb04fa6bc176c783f5b39505ce2a0723bd0366a523bffd5fba1f968ef9",
+    "automation/verify_timestamp.py": "24c37cb5b12ed85fdc7e1aeed06855a4b192957505ea972baf4b36c44d94825b",
+    "automation/healthcheck.py": "abd39d8a2bb8853c7f039a10d4f77d14ac4e22e9e48ad923f1fbf2103b280711",
+    "automation/integrity.py": "f55950b4987b2d14603f8b1407b8f5a4560b3197e88aad283008c81745244b3f",
+    ".github/workflows/prospective.yml": "0aafb273cf7e70f7543457e40a33fe214d08c6f22b9d63e3147ceb7d0cf78b79",
+    ".github/workflows/results.yml": "340cd67074afd4af56bdbad7c5742d537db05cf9ee811747106346635176254b",
+    ".github/workflows/quality.yml": "9e13d51d0211785735436866f52d34850a434941db476fe888afc38b98966dfa"
+  }
+}

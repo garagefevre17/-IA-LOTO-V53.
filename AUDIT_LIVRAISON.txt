@@ -1,0 +1,11 @@
+IA LOTO - Application unique : correctifs supplémentaires (18/11/2026)
+
+- Le bilan prospectif côté serveur recalcule désormais Froids 300 depuis les 300 tirages précédents avant d'accepter une prévision horodatée.
+- Vérification de la période d'entraînement, des 5 numéros, du numéro Chance et de l'heure de création.
+- Refus des prévisions signées mais incohérentes avec le protocole figé.
+- Contrôle des dates du CSV externe en fuseau Europe/Paris, pas en UTC.
+- Tests de non-régression ajoutés pour la conformité et la falsification des prévisions.
+
+IMPORTANT : la vérification du code ne prouve pas la fiabilité de la source FDJ ni le fonctionnement des services externes. La configuration des secrets GitHub et un essai sur le dépôt réel restent indispensables. Une autorité RFC3161 ne prouve pas qu'une sélection gagnera.
+
+Ne pas effacer les anciennes prévisions horodatées. Conserver une sauvegarde du dépôt avant installation.

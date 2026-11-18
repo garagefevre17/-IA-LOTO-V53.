@@ -1,0 +1,23 @@
+IA LOTO — UN SEUL PROJET
+
+Ce paquet conserve les sept fichiers de l'application V65 et ajoute seulement les programmes d'automatisation sous automation/ et .github/workflows/.
+Il ne s'agit pas d'une deuxième application.
+
+Ne pas effacer les fichiers existants du dépôt. Ajouter ou mettre à jour les fichiers à la racine et les chemins complets des sous-dossiers.
+ATTENTION : sur iPhone, l'interface Upload files de GitHub ne préserve pas nécessairement les dossiers imbriqués. Pour les fichiers .github/workflows/prospective.yml et .github/workflows/results.yml, utiliser GitHub > Add file > Create new file et saisir exactement le chemin du fichier, puis coller son contenu, ou utiliser un client Git prenant en charge les dossiers.
+
+PREREQUIS AVANT ACTIVATION :
+1. Source CSV HTTPS compatible : secrets FDJ_CSV_URL et FDJ_ALLOWED_HOST (nom de domaine exact après redirections). Vérifier manuellement que le fournisseur est bien officiel ; la liste autorisée ne certifie pas FDJ. L'application ne dispose pas d'une source FDJ officielle préconfigurée.
+2. TSA RFC3161 réelle : secrets TSA_URL et TSA_CA_PEM_B64 (chaîne de confiance validée indépendamment).
+3. GitHub Settings > Actions > General > Workflow permissions > Read and write permissions.
+4. Exécuter manuellement chaque workflow et inspecter les journaux et les fichiers de preuve avant de le considérer opérationnel.
+5. Vérifier les règles de tirage et les limites de temps : le cutoff 18 h est une limite technique conservatrice, pas une heure officielle de la FDJ.
+
+Le workflow de prévision s'exécute lundi/mercredi/samedi à 14:15 UTC, refuse les données périmées et les exécutions après 18 h heure de Paris, puis exige un reçu TSA signé vérifié avant publication.
+Le workflow de résultats s'exécute lundi/mercredi/samedi à 22:30 UTC et compare les tirages publiés avec les prévisions conservées. Il n'authentifie pas lui-même la provenance officielle du CSV ni ne revalide cryptographiquement les reçus TSA lors de chaque comparaison.
+GitHub Actions peut être retardé ou désactivé, notamment dans les dépôts inactifs. L'autonomie n'est pas encore démontrée en production.
+
+EuroMillions reste disponible dans l'interface, mais l'automatisation serveur porte uniquement sur LOTO.
+Le modèle Froids 300 reste figé. Aucune performance supérieure au hasard n'est démontrée.
+
+IMPORTANT : Les exécutions GitHub Actions programmées peuvent être retardées ou ignorées. Vérifier les onglets Actions et les fichiers prospective/ avant de qualifier une prévision de certifiée. Les tests de régression sont exécutés avant les traitements.

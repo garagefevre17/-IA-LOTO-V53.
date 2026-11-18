@@ -1,0 +1,18 @@
+IA LOTO — Prototype de chaîne prospective automatisée
+
+INSTALLATION : décompresser et transférer les fichiers et le dossier .github/workflows (le dossier caché .github est indispensable) dans le dépôt GitHub. Depuis un iPhone, le transfert d'un dossier caché peut nécessiter l'interface web GitHub « Create new file » avec chemin .github/workflows/prospective.yml ou un outil Git.
+
+GitHub > Settings > Secrets and variables > Actions > New repository secret :
+- FDJ_CSV_URL : URL directe vers un CSV compatible, fourni et validé par l'utilisateur (optionnel, mais sans lui les données embarquées deviennent périmées).
+- TSA_URL : URL HTTPS d'une autorité d'horodatage RFC3161 acceptant POST application/timestamp-query.
+- TSA_CA_PEM_B64 : chaîne de certificats de confiance PEM de cette autorité, encodée en base64. La chaîne DOIT être obtenue et vérifiée indépendamment. Ne jamais prendre aveuglément un certificat fourni par une source non fiable.
+
+GitHub > Settings > Actions > General : autoriser GitHub Actions à écrire dans le dépôt si souhaité (Workflow permissions: Read and write permissions).
+
+Le déclenchement est prévu les lundi, mercredi et samedi à 14:15 UTC. Les horaires GitHub Actions ne sont pas garantis; le programme n'a PAS encore de garde-fou explicite contre les exécutions après clôture du tirage, autre que l'antériorité cryptographique du reçu. Le cron UTC ne suit pas automatiquement l'heure d'été française. Les preuves doivent être vérifiées contre l'heure limite réelle du tirage.
+
+La source FDJ n'est pas configurée. L'authenticité des CSV n'est pas certifiée. Les secrets TSA ne sont pas configurés. Aucun horodatage réel n'a été effectué. Aucun test GitHub Actions distant ni Safari n'a été effectué.
+
+Le workflow refuse de publier si le CSV est vieux (>5 jours), mal formé, si des dates récentes manquent, si un reçu signé n'est pas vérifiable, ou si la prévision existe déjà.
+
+Le moteur EuroMillions reste dans l'interface V65, mais cette première chaîne automatisée ne couvre QUE LOTO. Pas de garantie de gains.

@@ -1,0 +1,86 @@
+{
+  "generated_utc": "2026-11-18T20:21:25.110580+00:00",
+  "overall": "not_production_verified",
+  "checks": [
+    {
+      "name": "index.html",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": "app.js",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": "euromillions.js",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": "prospectif.js",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": ".github/workflows/prospective.yml",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": ".github/workflows/results.yml",
+      "status": "pass",
+      "detail": "File present"
+    },
+    {
+      "name": "historical_csv",
+      "status": "pass",
+      "detail": "1101 complete draws; last 2026-11-16; sha256 b7af95fc3afaf90a51b861e038cf9c328de55a224800808d72c79b9422ae7111"
+    },
+    {
+      "name": "source_freshness",
+      "status": "pending",
+      "detail": "Next expected draw 2026-11-18; current Paris date 2026-11-18; pending means result not yet verified"
+    },
+    {
+      "name": "configuration_FDJ_CSV_URL",
+      "status": "missing",
+      "detail": "Required for automation"
+    },
+    {
+      "name": "configuration_FDJ_ALLOWED_HOST",
+      "status": "missing",
+      "detail": "Required for automation"
+    },
+    {
+      "name": "configuration_TSA_URL",
+      "status": "missing",
+      "detail": "Required for automation"
+    },
+    {
+      "name": "configuration_TSA_CA_PEM_B64",
+      "status": "missing",
+      "detail": "Required for automation"
+    },
+    {
+      "name": "live_fdj_download",
+      "status": "not_tested",
+      "detail": "No network call in offline diagnostic"
+    },
+    {
+      "name": "live_tsa_signature",
+      "status": "not_tested",
+      "detail": "No TSA token requested in offline diagnostic"
+    },
+    {
+      "name": "github_actions_execution",
+      "status": "not_tested",
+      "detail": "Cannot prove a hosted workflow ran locally"
+    },
+    {
+      "name": "iphone_safari_interactions",
+      "status": "not_tested",
+      "detail": "Requires real device test"
+    }
+  ]
+}

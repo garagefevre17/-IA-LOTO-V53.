@@ -1,0 +1,16 @@
+IA LOTO — Audit approfondi, 18 novembre 2026
+
+Base : archive fournie par l’utilisateur (25 fichiers). Même application conservée.
+
+Corrections réelles :
+1. EuroMillions : calcul de la prochaine date réutilise l’horloge Europe/Paris centralisée.
+2. EuroMillions : accès crypto.subtle protégé si crypto est absent (évite ReferenceError).
+3. EuroMillions : calendrier contrôlé selon la transition exacte mardi->vendredi et vendredi->mardi.
+4. EuroMillions : description explicite si aucun tirage n’est chargé.
+5. Nouveau test JavaScript exécuté par Node avec DOM simulé (10 assertions) ; lancé automatiquement dans les deux workflows GitHub.
+6. Trois modules JavaScript vérifiés par node --check dans chaque workflow.
+
+Tests effectués : 10 tests Python existants OK ; 10 contrôles JavaScript OK ; syntaxe JS OK.
+Limites : ce n’est pas un test Safari réel. Les workflows GitHub, FDJ, TSA et le déclenchement sans téléphone n’ont pas été exécutés sur le compte utilisateur. La source CSV n’est pas authentifiée officiellement. Le protocole Froids 300 n’a pas été modifié ; aucun avantage sur le hasard démontré.
+
+Déploiement : conserver le dépôt existant ; sauvegarder avant remplacement ; copier tous les fichiers et dossiers du ZIP à la racine du dépôt, y compris .github/workflows et automation. Configurer les secrets FDJ_CSV_URL, FDJ_ALLOWED_HOST, TSA_URL, TSA_CA_PEM_B64. Ne pas annoncer « autonome certifié » avant une exécution distante vérifiée.

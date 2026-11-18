@@ -1,0 +1,17 @@
+IA LOTO — Renforcement de fiabilité et outils d'analyse
+
+Changements effectifs :
+1. automation/integrity.py : inventaire déterministe de 12 fichiers essentiels, SHA-256 et tailles, avec option --verify. Une modification de fichier ou de manifeste est détectée.
+2. automation/test_integrity.py : cinq nouveaux tests unitaires (inventaire, altération, fichier absent, faux manifeste, schéma invalide).
+3. automation/healthcheck.py : statut 'pending' pour un tirage attendu aujourd'hui mais pas encore intégré. Ne plus afficher à tort 'pass'.
+4. .github/workflows/quality.yml : contrôle d'intégrité ajouté aux tests GitHub, avec conservation du manifeste comme artefact.
+5. integrite_fichiers.json : manifeste local de référence généré et vérifié.
+
+Résultats locaux : 33 tests Python réussis ; 10 contrôles JavaScript réussis ; syntaxe des 3 JS vérifiée ; inventaire SHA-256 généré puis vérifié.
+
+LIMITES IMPORTANTES :
+- L'inventaire n'est pas une signature numérique ni une preuve d'antériorité indépendante. Un attaquant qui remplace le code et le manifeste peut tromper le contrôle ; une signature externe est nécessaire pour l'authenticité.
+- Les tests JavaScript utilisent un faux DOM Node et ne constituent pas un test interactif Safari.
+- Les sources officielles FDJ, l'autorité TSA et l'exécution GitHub distante ne sont pas validées.
+- Aucune amélioration de la probabilité de gagner n'est démontrée.
+- Un fonctionnement sans défaut ne peut pas être garanti.

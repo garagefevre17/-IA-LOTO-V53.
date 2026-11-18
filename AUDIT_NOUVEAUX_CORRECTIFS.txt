@@ -1,0 +1,9 @@
+AUDIT ET CORRECTIONS — 18 novembre 2026
+
+1. Contrôle des lacunes sur TOUT l’historique LOTO côté Python (auparavant seulement les 301 dernières dates).
+2. Contrôle du domaine HTTPS à la fois sur l’URL initiale et sur l’URL finale après redirection.
+3. Téléchargement limité aux protocoles HTTPS, y compris après redirection.
+4. Validation complète du CSV téléchargé avant prévision ou bilan (dates, doublons, numéros, continuité).
+5. Correction de la documentation qui contredisait le code de vérification TSA.
+
+LIMITES : Aucune source officielle FDJ certifiée ni autorité TSA configurée ; workflows GitHub non testés en production. Aucun gain prédictif démontré.

@@ -1,0 +1,10 @@
+IA LOTO — audit correctif du 18 novembre 2026
+
+CORRIGÉ : fonction parisNow manquante, qui bloquait la génération EuroMillions.
+CORRIGÉ : écouteurs redondants sur la date et la fenêtre EuroMillions.
+CORRIGÉ : contrôle des dates de saisie manuelle en heure de Paris.
+RENFORCÉ : contrôles de cohérence entre génération et horodatage RFC 3161.
+CONSERVÉ : moteurs LOTO, EuroMillions, Froids 300, comparaisons, suivi local, GitHub Actions.
+
+NON VALIDÉ : source officielle FDJ, certificats TSA de confiance, exécution distante GitHub, tests Safari.
+Une URL HTTPS n’établit pas l’authenticité FDJ. Un backtest ne démontre pas un avantage prédictif.
