@@ -1,0 +1,36 @@
+name: IA LOTO - Controle qualite
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verifier les scripts Python
+        run: python -m compileall -q .
+
+      - name: Executer les tests Python
+        run: python -m unittest discover -s . -p 'test_*.py' -v
+
+      - name: Verifier JavaScript
+        run: |
+          node --check app.js
+          node --check euromillions.js
+          node --check prospectif.js
+          node test_browser.js
