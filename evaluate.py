@@ -16,7 +16,7 @@ PARIS = ZoneInfo('Europe/Paris')
 
 def verify_receipt(prediction, receipt, trust_file):
     subprocess.run(['openssl', 'ts', '-verify', '-data', str(prediction), '-in', str(receipt), '-CAfile', str(trust_file)], check=True, capture_output=True, text=True)
-    subprocess.run([sys.executable, 'automation/verify_timestamp.py', str(prediction), str(receipt)], check=True, capture_output=True, text=True)
+    subprocess.run([sys.executable, str(Path(__file__).resolve().with_name('verify_timestamp.py')), str(prediction), str(receipt)], check=True, capture_output=True, text=True)
 
 
 def verify_frozen_forecast(info, draws, target, numbers, chance, prediction):
