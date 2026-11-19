@@ -39,6 +39,14 @@ def verify_frozen_forecast(info, draws, target, numbers, chance, prediction):
         raise ValueError(f'Invalid forecast creation time: {prediction}')
 
 
+def reject_orphan_assessments(root=ROOT):
+    result_dir = root / 'results'
+    if result_dir.exists():
+        for evaluated in result_dir.glob('loto-????-??-??.json'):
+            if not (root / evaluated.name).is_file():
+                raise ValueError(f'Orphan assessment without forecast: {evaluated}')
+
+
 def main():
     trust = os.environ.get('TSA_CA_PEM_B64', '')
     if not trust:
@@ -85,7 +93,9 @@ def main():
                     'main_hits': len(set(numbers) & set(winning)),
                     'chance_hit': chance == winning_chance,
                 }
-                if any(existing.get(key) != value for key, value in expected.items()):
+                if (existing.get('game') != 'LOTO' or existing.get('target') != info['target']
+                        or existing.get('verified_tsa_on_this_run') is not True
+                        or any(existing.get(key) != value for key, value in expected.items())):
                     raise ValueError(f'Existing assessment conflicts with verified inputs: {destination}')
                 continue
             winning, winning_chance = draws[target]
@@ -109,6 +119,9 @@ def main():
                 json.dump(result, handle, indent=2, ensure_ascii=False)
                 handle.write('\n')
             changed += 1
+        # Reject orphan evaluations: otherwise the report could count a result
+        # that has no corresponding immutable forecast in this repository.
+        reject_orphan_assessments(ROOT)
         print(f'New prospective results: {changed}')
 
 if __name__ == '__main__':
