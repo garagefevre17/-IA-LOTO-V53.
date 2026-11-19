@@ -1,0 +1,18 @@
+CORRECTION DU CONTROLE QUALITE GITHUB (19/11/2026)
+
+Cause observee dans le ZIP GitHub : scripts et tests Python sont a la racine du depot, mais les tests attendaient une archive CSV sous fixtures/ et un rapport sous audits/. Le CSV de reference et le rapport etaient a la racine.
+
+Corrections :
+- ajout fixtures/loto_reference_2026-11-16.csv (copie figee du CSV fourni)
+- test_healthcheck.py : chemin du CSV adapte a l'arborescence effective
+- test_manual_audit.py : chemins du rapport et du CSV adaptes a l'arborescence effective
+- test_fixture_presence.py : message d'erreur adapte
+
+Resultats locaux : 40 tests Python reussis ; verifications syntaxiques JS reussies ; 10 controles JavaScript navigateur simule reussis.
+
+LIMITES IMPORTANTES :
+- Le ZIP GitHub ne contient que .github/workflows/quality.yml. Les workflows prospective.yml et results.yml manquent.
+- Les modules d'automatisation sont a la racine alors que certaines references les attendent sous automation/ ; le pipeline prospectif et l'horodatage distant ne sont pas verifies ni operationnels par ces tests.
+- Le succes du controle qualite ne garantit ni la mise a jour FDJ, ni une preuve RFC3161, ni une performance predictive.
+
+Installation : importer le contenu du dossier du ZIP dans la racine du depot sur la branche main, en preservant les chemins. GitHub ne decompresse pas un ZIP televerse comme fichier.

@@ -33,10 +33,10 @@ class HealthcheckTests(unittest.TestCase):
             self.assertEqual(checks['source_freshness']['status'], 'unknown')
 
     def test_stale_valid_fixture_is_detected(self):
-        root = Path(__file__).resolve().parents[1]
+        root = Path(__file__).resolve().parent
         with tempfile.TemporaryDirectory() as folder:
             from shutil import copyfile
-            copyfile(root/'automation/fixtures/loto_reference_2026-11-16.csv', Path(folder)/'loto_201911.csv')
+            copyfile(root/'fixtures/loto_reference_2026-11-16.csv', Path(folder)/'loto_201911.csv')
             future = dt.datetime(2026, 11, 23, 15, tzinfo=dt.timezone.utc)
             checks = {c['name']: c for c in diagnose(folder, future, {})['checks']}
             self.assertEqual(checks['historical_csv']['status'], 'pass')
