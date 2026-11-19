@@ -1,0 +1,12 @@
+Amelioration du logiciel unique IA LOTO (19/11/2026)
+
+- Ajout d'un test explicite de presence du CSV fige au chemin automation/fixtures/loto_reference_2026-11-16.csv.
+- Ajout d'un audit MANUEL du tirage 18/11/2026, base sur la capture fournie par l'utilisateur.
+- Ajout d'un test de reproduction du pronostic Froids 300 et du nombre de correspondances.
+- Le fichier de reference est inclus au BON emplacement dans cette archive.
+- Aucun historique officiel n'a ete mis a jour a partir d'une capture. Ne pas inserer une ligne non verifiee dans le CSV officiel.
+- Aucun recu RFC3161 n'a ete genere ou certifie par cette livraison.
+- Les tests locaux ne prouvent pas le fonctionnement automatique des sources FDJ, TSA et GitHub Actions.
+
+INSTALLATION : televerser le CONTENU de l'archive en conservant les sous-dossiers a la racine du depot GitHub, sur la branche par defaut. GitHub Upload files ne decompresse pas les ZIP.
+ATTENTION : ne pas deplacer les scripts Python hors du dossier automation/.

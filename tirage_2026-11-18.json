@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-18",
+  "source": "capture utilisateur du resultat FDJ; authenticite non verifiee independamment",
+  "main_numbers": [12, 17, 38, 41, 45],
+  "chance": 7,
+  "froids300_reference": {
+    "numbers": [11, 35, 43, 46, 48],
+    "chance": 10,
+    "main_hits": 0,
+    "chance_hit": false,
+    "status": "comparaison historique; absence de preuve d'anteriorite certifiee dans ce dossier"
+  },
+  "note": "Ce rapport manuel n'est pas une evaluation certifiee par RFC3161 et n'est pas injecte dans prospective/results."
+}
