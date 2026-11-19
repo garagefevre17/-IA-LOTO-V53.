@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Froids 300: calcul reproductible, échec fermé, aucune prétention de prédiction garantie."""
 import collections, csv, datetime as dt, hashlib, io, json, os, pathlib, urllib.request
-ROOT=pathlib.Path(__file__).resolve().parents[1]
+ROOT=pathlib.Path(__file__).resolve().parent
 STATE=ROOT/'v26-state.json'
 UTC=dt.timezone.utc
 
