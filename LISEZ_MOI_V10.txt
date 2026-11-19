@@ -1,0 +1,17 @@
+IA LOTO V10 — SCIENCE+ (14 novembre 2026)
+
+CONTENU : application V9 conservée + nouvel onglet Science+
+- Mesure chronologique hors-fuite de la qualité des probabilités : modèle bayésien vs modèle équitable.
+- Fenêtres de 300 tirages, a priori 50/300/1000; scoring log marginal et Chance.
+- Comparaison NON DESTRUCTIVE d’un fichier CSV normalisé de provenance vérifiée avec le jeu local.
+- SHA-256 de l’historique et du journal, sans faux horodatage certifié.
+- Bilan des prévisions enregistrées V6/V7/V8/V9.
+- Les anciennes prévisions et données restent dans localStorage sous les clés précédentes.
+
+INSTALLATION :
+1) Ouvrir l’ancienne version dans Safari; exporter le journal JSON.
+2) Netlify : déployer le DOSSIER contenant index.html, app.js, data.js, ev.js, science10.js, sw.js et manifest.webmanifest. Ne pas envoyer une archive ZIP brute dans un éditeur de fichier isolé.
+3) Ouvrir le site HTTPS Safari, vérifier V10 puis onglet Science+.
+4) Conserver votre sauvegarde JSON; réimporter dans Données si nécessaire.
+
+LIMITES : aucune capacité prédictive démontrée, aucun bénéfice garanti, aucune vérification automatique exhaustive avec les archives FDJ, aucun horodatage certifié. Le score historique a déjà influencé nos choix de méthodes.

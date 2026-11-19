@@ -1,0 +1,43 @@
+/* V10 - Evaluation chronologique des probabilites, controles de provenance et journal.
+   Aucun algorithme ne garantit le LOTO. JavaScript local, aucune transmission de donnees. */
+(()=>{'use strict';
+const el=id=>document.getElementById(id);
+const fmt=(v,d=4)=>v.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const ep=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function drawMarginalScore(row,p){let score=0;let yes=new Set(row.slice(1,6));for(let k=1;k<=49;k++)score-=yes.has(k)?Math.log(p[k]):Math.log1p(-p[k]);return score;}
+function run(){let out=el('sciResult'),N=Number(el('sciN').value),w=Number(el('sciPrior').value);out.textContent='Calcul en cours…';
+try{if(draws.length<N+300)throw Error('Historique insuffisant');let start=draws.length-N;
+let counts=new Int32Array(50),chances=new Int32Array(11);
+for(let i=start-300;i<start;i++){for(let k=1;k<=5;k++)counts[draws[i][k]]++;chances[draws[i][6]]++}
+let dMain=0,dChance=0,blocks=[{m:0,c:0,n:0},{m:0,c:0,n:0},{m:0,c:0,n:0},{m:0,c:0,n:0}];const pm=5/49;
+const baseMain=5*(-Math.log(pm))+44*(-Math.log1p(-pm)),baseChance=Math.log(10);
+for(let i=start;i<draws.length;i++){
+ let p=new Float64Array(50);for(let k=1;k<=49;k++)p[k]=(counts[k]+w*pm)/(300+w);
+ let row=draws[i],pc=(chances[row[6]]+w/10)/(300+w);
+ let sm=drawMarginalScore(row,p)-baseMain,sc=-Math.log(pc)-baseChance;
+ dMain+=sm;dChance+=sc;
+ let block=Math.min(3,Math.floor((i-start)*4/N));blocks[block].m+=sm;blocks[block].c+=sc;blocks[block].n++;
+ let old=draws[i-300];for(let k=1;k<=5;k++){counts[old[k]]--;counts[row[k]]++}chances[old[6]]--;chances[row[6]]++;
+}
+let delta=dMain+dChance, close=(v)=>Math.abs(v)<.00005?'≈ 0':fmt(v), interpretation=delta<0?'Meilleur score historique que la référence équitable':'Moins bon score historique que la référence équitable';
+out.className='status '+(delta<0?'warn':'good');
+out.innerHTML='<b>'+N+' tirages évalués • fenêtre antérieure de 300 • régularisation '+w+'</b><table class="tbl"><tr><th>Écart moyen de perte logarithmique</th><th>Bayes − hasard</th></tr><tr><td>Numéros principaux (49 probabilités marginales)</td><td>'+close(dMain/N)+'</td></tr><tr><td>Chance (10 issues exclusives)</td><td>'+close(dChance/N)+'</td></tr><tr><td><b>Score combiné / tirage</b></td><td><b>'+close(delta/N)+'</b></td></tr></table><p><b>'+interpretation+'</b> (plus faible = meilleur).</p><table class="tbl"><tr><th>Quart de période</th><th>Écart moyen</th></tr>'+blocks.map((b,j)=>'<tr><td>'+(j+1)+'/4 ('+b.n+' tirages)</td><td>'+close((b.m+b.c)/b.n)+'</td></tr>').join('')+'</table><p class="note">Une amélioration rétrospective, même dans chaque quart, ne prouve pas un avantage futur. L’a priori et la fenêtre sont des hypothèses d’exploration, et les essais multiples exigent confirmation prospective. Le score est une somme de scores propres sur des marginales : il ne calcule pas la probabilité du jackpot. Il ne s’agit pas d’un test de signification.</p>';
+}catch(e){out.className='status bad';out.textContent='Erreur : '+e.message}}
+async function compare(){let o=el('sciDataResult'),f=el('sciFile').files?.[0];if(!f){o.textContent='Sélectionne d’abord un fichier CSV.';return}
+try{let source=parseCSV(await f.text()),local=new Map(draws.map(r=>[r[0],r])),agree=0,conflicts=[],unknown=[],dates=[];for(const r of source){let old=local.get(r[0]);if(!old){unknown.push(r[0]);continue}if(JSON.stringify([...old.slice(1,6)].sort((a,b)=>a-b))===JSON.stringify([...r.slice(1,6)].sort((a,b)=>a-b))&&old[6]===r[6])agree++;else conflicts.push(r[0]);dates.push(r[0])}
+let total=agree+conflicts.length,cover=(total/draws.length*100).toFixed(1);
+o.className='status '+(conflicts.length?'bad':'good');o.innerHTML='<b>Comparaison terminée — fichier « '+ep(f.name)+' »</b><p>'+source.length+' lignes valides ; '+total+' dates communes ('+cover+' % de la base locale) ; <b>'+agree+' concordantes</b> ; <b>'+conflicts.length+' contradictoires</b> ; '+unknown.length+' dates absentes de la base.</p>'+ (conflicts.length?'<p><b>Dates contradictoires :</b> '+ep(conflicts.slice(0,30).join(', '))+'</p>':'')+(unknown.length?'<p><b>Dates non couvertes :</b> '+ep(unknown.slice(0,12).join(', '))+(unknown.length>12?'…':'')+'</p>':'')+'<small>Les dates sont comparées sans tenir compte de l’ordre des cinq numéros. Zéro contradiction ne prouve la certification officielle : l’origine du fichier doit être vérifiée séparément. Aucun résultat local n’a été modifié. Le comparateur ne gère que le CSV normalisé et les jours de tirage ordinaire.</small>';
+}catch(e){o.className='status bad';o.textContent='Comparaison impossible : '+e.message}}
+async function sha256(s){if(!globalThis.crypto?.subtle)throw Error('SHA-256 nécessite un contexte sécurisé (HTTPS Safari).');let bytes=new TextEncoder().encode(s),hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function canonicalDraw(){return draws.map(r=>r.join(',')).join('\n')}
+function canonicalLog(){return JSON.stringify([...log].map(r=>({target:r.target,method:r.method,cutoff:r.cutoff,numbers:r.numbers,chance:r.chance,created:r.created||null})).sort((a,b)=>(a.target+'|'+a.method).localeCompare(b.target+'|'+b.method)))}
+async function digest(){let o=el('sciHashResult');try{let d=await sha256(canonicalDraw()),j=await sha256(canonicalLog());let report='IA LOTO V11 — Empreintes SHA-256 locales\nCréé (horloge appareil, non certifiée) : '+new Date().toISOString()+'\nHistorique lignes : '+draws.length+'\nSHA256 historique normalisé : '+d+'\nJournal entrées : '+log.length+'\nSHA256 journal canonique : '+j+'\n\nAucun horodatage indépendant ni authentification FDJ.\nConserver et publier cette empreinte auprès d’un service tiers avant le tirage si preuve externe souhaitée.\n';o.className='status good';o.innerHTML='<b>Empreintes calculées</b><p>Historique : <code>'+d.slice(0,24)+'…</code></p><p>Journal : <code>'+j.slice(0,24)+'…</code></p><p>'+draws.length+' tirages ; '+log.length+' prévisions.</p>';exportFile('IA_LOTO_V11_empreintes.txt',report,'text/plain')}
+catch(e){o.className='status bad';o.textContent=e.message}}
+function journal(){let o=el('sciJournalResult'),byDate=new Map(draws.map(r=>[r[0],r]));let seen=new Set(),scored=[],future=[],problems=[];
+for(let r of log){if(!validLog(r)){problems.push('Entrée non valide');continue}const key=r.target+'|'+r.method;if(seen.has(key))problems.push('Doublon : '+key);seen.add(key);let target=byDate.get(r.target);if(!target){future.push(r);continue}let matches=new Set(target.slice(1,6));let hits=r.numbers.filter(n=>matches.has(n)).length;let ch=Number(r.chance===target[6]);let properCutoff=typeof r.cutoff==='string'&&r.cutoff<r.target;let localBefore=typeof r.created==='string'&&r.created.slice(0,10)<=r.target;scored.push({r,hits,ch,properCutoff,localBefore})}
+let total=scored.reduce((n,r)=>n+r.hits,0),c=scored.reduce((n,r)=>n+r.ch,0),bad=scored.filter(x=>!x.properCutoff||!x.localBefore);
+o.className='status '+(problems.length||bad.length?'warn':'good');o.innerHTML='<b>'+log.length+' prévisions enregistrées</b><p>'+scored.length+' avec résultat connu ; '+future.length+' sans résultat ; '+problems.length+' doublon(s) ou défaut(s) détecté(s).</p><p>Sur prévisions évaluables : <b>'+total+' bons numéros principaux</b> et <b>'+c+' numéros Chance</b> (prévisions possiblement corrélées).</p>'+ (bad.length?'<p class="warn">'+bad.length+' prévisions avec incohérence de dates locales ou de cutoff ; elles ne sont pas fiables comme tests prospectifs.</p>':'')+'<table class="tbl"><tr><th>Prévision</th><th>Résultat</th></tr>'+scored.slice(-25).map(x=>'<tr><td>'+ep(x.r.target)+' · '+ep(x.r.method)+'</td><td>'+x.hits+'/5 + '+x.ch+' Chance</td></tr>').join('')+'</table><small>Seule la vérification externe AVANT les tirages permet d’attester la vraie chronologie. Aucune validation automatique indépendante du téléphone.</small>';
+}
+function selfcheck(){let sample=[['2026-11-11',4,5,14,17,29,8]],fair=5/49,p=new Float64Array(50).fill(fair),expected=5*(-Math.log(fair))+44*(-Math.log1p(-fair));if(Math.abs(drawMarginalScore(sample[0],p)-expected)>1e-9)throw Error('Score marginal non calibré');if(Math.abs((10*(1/10))-1)>1e-12)throw Error('Référence chance invalide');return true}
+try{selfcheck();el('sciRun').addEventListener('click',()=>setTimeout(run,30));el('sciCompare').addEventListener('click',compare);el('sciHash').addEventListener('click',digest);el('sciJournal').addEventListener('click',journal)}catch(e){el('sciResult').className='status bad';el('sciResult').textContent='Module V10 indisponible : '+e.message;console.error(e)}
+})();

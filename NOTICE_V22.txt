@@ -1,0 +1,14 @@
+IA LOTO V22 — MOTEUR D’EVALUATION CHRONOLOGIQUE
+
+Nouveautés :
+- Nouvelle rubrique « Moteur » en bas de l’écran, avec contrôle sur 300/600/1000 tirages.
+- Choix d’une des cinq stratégies à partir de 500 tirages d’entraînement antérieurs à la période contrôlée.
+- Contrôle hors échantillon chronologique, avec comparaison à Froids 300 inchangé et à un témoin pseudo-aléatoire reproductible.
+- Intervalle descriptif bootstrap apparié à 95 % pour la différence de numéros trouvés.
+- Export JSON du rapport.
+
+Limites : l’historique a déjà été exploré dans les versions précédentes, les tests ne constituent pas une confirmation indépendante. Aucune supériorité de probabilité de jackpot n’est démontrée. Ne pas augmenter les mises sur la base de ces scores.
+
+Installation : exporter les sauvegardes de l’ancienne version ; décompresser et publier TOUS les fichiers sur le même site Netlify. Préserver les données du navigateur et le domaine.
+
+La V22 n’efface ni n’écrit d’archives ou de journaux existants. L’horloge et le journal locaux ne fournissent pas un horodatage certifié.

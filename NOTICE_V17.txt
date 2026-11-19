@@ -1,0 +1,28 @@
+IA LOTO V17 — Centre scientifique intégré
+========================================
+
+INSTALLATION
+1. Ouvrir l'ancienne application et exporter les journaux JSON avant toute mise à jour.
+2. Décompresser ce ZIP ; publier tous les fichiers présents à sa racine sur Netlify.
+3. Ouvrir l'adresse HTTPS du site dans Safari. Choisir « V17 » dans la navigation ou ouvrir le raccourci V17 sur l'accueil.
+
+LE NOUVEAU CENTRE V17
+1. Import de CSV FDJ décompressés, contrôle des dates, numéros, contradictions et trous chronologiques.
+2. Comparaison sans fuite temporelle de Froids 300, Chauds 100 et d'un témoin pseudoaléatoire déterministe (100 à 1000 tirages historiques).
+3. Préparation des trois sélections Froids 300, adaptatif V16.6 et témoin uniforme cryptographique. Les prévisions ne sont sauvegardables que pour un tirage futur, avant 18h heure de Paris le jour du tirage, et une seule fois par date.
+4. Journal V17 séparé, sauvegarde par empreinte SHA-256, audit d'intégrité, bilan des tirages connus, export CSV/JSON et restauration sans écrasement des dates existantes.
+5. Tests techniques intégrés et informations sur la fraîcheur de la base.
+
+IMPORTANT
+- Les 2 833 tirages intégrés sont arrêtés au 11 novembre 2026. Les ajouts importés via V17 sont temporaires : ils disparaissent au rechargement de la page. Il faut réimporter le CSV vérifié.
+- Un fichier importé peut être en accord avec la base sans que sa provenance FDJ soit authentifiée.
+- Une empreinte locale n'établit pas un horodatage indépendant.
+- Les anciens modules sont conservés et leurs journaux locaux ne sont pas modifiés par le centre V17 ; exporter quand même les sauvegardes avant déploiement.
+- Aucun modèle n'a démontré de supériorité prédictive. À jeu équitable, jackpot d'une grille simple : 1/19 068 840. Ne pas augmenter les mises dans l'espoir de financer un projet.
+
+VALIDATIONS TECHNIQUES
+- Vérification de syntaxe JavaScript.
+- Exécution des vrais moteurs v15/v16/v166 et du nouveau module v17 en Node VM sur les 2 833 tirages.
+- Froids 300 reproducible au 11/11/2026 : 11 35 43 46 48, Chance 10.
+- Tests de refus : CSV contradictoire, dates manquantes, altération d'une empreinte, restauration sans écrasement.
+- L'affichage et les boutons dans Safari iPhone n'ont pas été vérifiés dans cet environnement.

@@ -1,0 +1,5 @@
+IA LOTO V20 — Corrections et fiabilisation, 14 novembre 2026.
+Installation : publier directement LE CONTENU du ZIP dans Netlify, à la racine du site, après avoir exporté les journaux JSON.
+Nouveautés : interface iPhone avec commande avancée intégrée à l’en-tête ; tableau de bord sur données V18 actives ; tests approfondis ; export général des clés locales connues ; durcissement de restauration V19 (vérification des empreintes existantes), contrôle anti-enregistrement tardif dans le module historique ; cache PWA V20 plus sûr.
+Compatibilité : les clés de stockage V18/V19 restent les mêmes ; anciens modules conservés. Les sauvegardes V17 et autres sont exportées en lecture seule dans l’archive générale. Aucun import de sauvegarde générale n'est prévu ; utiliser les restaurations individuelles des modules.
+Important : les captures de test ne garantissent pas le fonctionnement Safari ; la validation sur le téléphone doit suivre le déploiement. Aucune méthode n'a démontré battre un LOTO équitable.

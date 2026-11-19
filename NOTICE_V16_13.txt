@@ -1,0 +1,10 @@
+IA LOTO V16.13 — Correctif de validation des nouveaux tirages
+
+1) Exporte les journaux JSON de la version précédente.
+2) Décompresse ce ZIP et publie TOUS les fichiers, avec index.html à la racine, sur Netlify.
+3) Dans V16.13, importe un CSV LOTO FDJ contenant des tirages plus récents que la base intégrée.
+4) Vérifie la source et coche la case pour admettre les nouveaux résultats dans le bilan temporaire.
+5) Exporte le rapport JSON/CSV. Aucun tirage ni journal n'est modifié.
+
+Un CSV ne prouve pas à lui seul son authenticité. Les empreintes locales ne certifient pas l'heure des prévisions.
+Aucun avantage prédictif sur le hasard démontré. Ne pas augmenter les mises.

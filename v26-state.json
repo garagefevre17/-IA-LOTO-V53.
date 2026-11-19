@@ -1,0 +1,9 @@
+{
+  "schema": "froids300-v26",
+  "configured": false,
+  "predictions": [],
+  "results": [],
+  "validated": 0,
+  "examined": 0,
+  "message": "Automatisation non configurée : source FDJ officielle et GitHub requis."
+}

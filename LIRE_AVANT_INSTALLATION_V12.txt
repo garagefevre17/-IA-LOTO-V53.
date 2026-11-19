@@ -1,0 +1,9 @@
+IA LOTO V12 — Protocole scientifique
+
+1. Exporter votre journal JSON actuel AVANT publication.
+2. Décompresser le ZIP et publier son contenu sur Netlify.
+3. Ouvrir le site en HTTPS dans Safari, vérifier IA LOTO V12.
+4. Ouvrir V12 et lancer le test chronologique Froids 300.
+5. Les prédictions déjà stockées dans localStorage ne sont pas effacées par le code, mais conserver un export JSON reste indispensable.
+6. Ce logiciel ne garantit aucun gain ; les scores historiques ne sont pas une preuve prédictive.
+7. Archives officielles : https://www.fdj.fr/jeux-de-tirage/loto/historique

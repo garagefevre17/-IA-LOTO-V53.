@@ -1,0 +1,6 @@
+IA LOTO V14 — Fiabilité scientifique
+Décompresser l'archive et publier les 17 fichiers dans le même dossier sur Netlify.
+Sauvegarder le journal JSON depuis Données avant tout déploiement.
+L'onglet V14 affiche les probabilités exactes, teste Froids 300 sur 1000 tirages sans fuite du résultat courant, et évalue les prévisions dont le résultat est connu.
+Il n'existe aucune garantie ni preuve de pouvoir prédire les 5 numéros et le Chance.
+La base embarquée reste datée du 11 novembre 2026. Vérifier les résultats FDJ avant toute nouvelle prédiction.

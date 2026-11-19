@@ -1,0 +1,2 @@
+IA LOTO V16.15 — contrôle chronologique sur des résultats nouveaux.
+Sauvegarder le journal avant de déployer. Décompresser le ZIP et publier son contenu (index.html à la racine) sur Netlify. Ouvrir V16.15 et sélectionner un CSV FDJ plus récent que les données intégrées. Les résultats sont calculés un par un sans fuite temporelle et sans modifier le journal. Les dates ordinaires manquantes bloquent le test. Attention : le CSV seul ne certifie pas son origine et aucune supériorité au hasard n’est démontrée.

@@ -1,0 +1,24 @@
+IA LOTO V16.5 — Comparaison d'apprentissage continu et réinitialisé
+
+INSTALLATION NETLIFY
+1. Depuis l'ancienne application, exporter le journal JSON pour le préserver.
+2. Décompresser cette archive. Publier le CONTENU du dossier (index.html à la racine).
+3. Ouvrir le site dans Safari en HTTPS et vérifier « V16.5 » puis l'onglet V16.5.
+4. Cliquer « Vérifier le calcul séquentiel » puis « Comparer apprentissage continu et réinitialisé ».
+5. Exporter le bilan CSV si souhaité.
+
+CORRECTIONS
+- Titre V16.5, badge moteur V16.5, mise à jour du cache de service worker.
+- Nouveau fichier v165.js avec sélection des hyperparamètres sur une fenêtre de développement distincte.
+- Comparaison APPARIÉE sur le même contrôle de deux modes d'apprentissage : remise à zéro et continuation des poids.
+- Référence équitable explicite ; rapport CSV et bootstrap descriptif par blocs.
+- Historique et anciens modules/journaux préservés dans le code. Les prévisions existantes résident normalement dans le stockage local du navigateur : sauvegarder le JSON avant toute publication.
+
+LIMITES SCIENTIFIQUES
+- Le test historique ne démontre pas de capacité à prévoir les numéros du LOTO.
+- Il n'y a pas d'horodatage certifié, ni de garantie de gain.
+- L'analyse exploite les données intégrées arrêtées au 11 novembre 2026, plus les éventuelles données locales valides du navigateur.
+- Ne pas augmenter les mises sur la base d'un écart historique favorable.
+
+TESTS DE DÉVELOPPEMENT
+Vérification JavaScript avec node --check. Calcul comparé sur 300 tirages de développement et 200 de contrôle depuis les archives embarquées. Continu = +0,00001043 ; réinitialisation = +0,00013498 (écarts de perte log vs hasard, plus petit = meilleur). Le modèle uniforme reste meilleur que les deux.

@@ -1,0 +1,2 @@
+V16.14 — moteur sur archive récente.
+Sauvegarder les journaux JSON avant déploiement. Décompresser le ZIP et publier tous les fichiers à la racine de Netlify. Dans V16.14, importer un CSV extrait de l’archive FDJ pour vérifier les dates et recalculer les deux sélections sur le dernier historique. Les résultats ne sont pas enregistrés dans la base ni dans le journal. Si la prochaine date calculée est passée, le logiciel indique des données périmées. Ne pas interpréter une grille comme un pronostic supérieur au hasard.

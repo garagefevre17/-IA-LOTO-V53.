@@ -1,0 +1,13 @@
+IA LOTO V15 — Validation prédictive expérimentale
+
+Installation : sauvegarder le journal JSON depuis la version précédente ; décompresser ce ZIP ; déposer tous les fichiers à la racine du site Netlify ; ouvrir dans Safari et sélectionner l'onglet V15.
+
+Nouveauté : 3 modèles probabilistes (Bayes régularisé, décroissance temporelle, anti-fréquence) évalués contre les probabilités théoriques exactes d'inclusion. Fenêtre d'apprentissage de 300 tirages, évaluation chronologique sans regarder le résultat à prédire.
+
+Mesure : log-perte composite, 49 événements d'inclusion principaux + log-perte du numéro Chance. Cela n'est pas une probabilité jointe exacte de jackpot. Les modèles ont été inspirés par l'analyse antérieure des mêmes archives. Ces tests sont exploratoires, pas une validation prospective indépendante.
+
+Résultat sur 400 tirages 2024-04-24 au 2026-11-11 : hasard 2.632129 ; Bayes 2.638342 ; décroissance 2.637344 ; anti-fréquence 2.632635. Plus faible est meilleur. Le hasard est premier.
+
+Les prévisions V6–V14 ne sont pas supprimées ni modifiées ; les nouvelles sélections V15 ne sont pas automatiquement enregistrées.
+
+Un LOTO équitable ne peut être prédit avec certitude. Ne pas engager l'apport du garage ou augmenter les mises sur la base de ce logiciel.

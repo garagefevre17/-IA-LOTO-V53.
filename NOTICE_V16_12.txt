@@ -1,0 +1,10 @@
+IA LOTO V16.12 — Bilan FDJ et journal prospectif
+
+1. Exporter vos journaux JSON depuis votre application actuelle.
+2. Décompresser ce ZIP et publier TOUT le contenu du dossier sur Netlify.
+3. Actualiser Safari et ouvrir l’onglet V16.12.
+4. Importer un CSV de tirages LOTO extrait d’une archive FDJ.
+5. Comparer les dates, concordances et scores de prévisions prospectives, puis exporter les rapports.
+
+Cette fonction est en lecture seule. Elle ne modifie ni l’historique ni les prévisions. Les fichiers importés ne sont pas certifiés numériquement et les dates de journal ne sont pas attestées par un tiers.
+Aucune méthode testée ne démontre de capacité à prévoir les 5 numéros et le Chance.

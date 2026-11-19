@@ -1,0 +1,12 @@
+IA LOTO V16.2 — Correctifs testables
+
+- Titre visible V16 au lieu de V14.
+- Cache renouvelé (service worker V16.2) et références scripts versionnées.
+- Tableau de bord: fraîcheur des tirages et état du journal.
+- Synchronisation manuelle forcée, indépendante du délai de 1h des synchronisations automatiques.
+- V16: bouton de préparation vers le journal sans remplacement automatique, avec blocage si historique périmé.
+- Export journal et historique nommés V16.
+- Méthodes Froids 300 et scores historiques inchangés. Aucune méthode gagnante démontrée.
+
+INSTALLATION : exporter votre journal JSON avant la publication. Publier le CONTENU du ZIP à la racine du même site Netlify, puis recharger Safari.
+Ne pas utiliser un ancien cache hors ligne pour de nouvelles prévisions.

@@ -1,0 +1,1 @@
+IA LOTO V23 — nouveau moteur de probabilités, fréquences multi-échelles avec régularisation et validation chronologique. Les prévisions historiques et les journaux ne sont pas effacés. Pas de supériorité sur le hasard démontrée. Sauvegarder les journaux avant déploiement.

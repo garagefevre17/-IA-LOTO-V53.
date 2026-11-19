@@ -1,0 +1,8 @@
+IA LOTO V16.10 — contrôle de fraîcheur et suivi séquentiel
+
+1. Avant installation : exporter tous les journaux JSON depuis Safari.
+2. Publier le contenu de ce dossier dans Netlify, index.html à la racine.
+3. Ouvrir V16.10 et lancer Diagnostiquer et contrôler.
+4. Exporter le bilan JSON ou CSV.
+
+IMPORTANT : ce module ne prédit pas les résultats FDJ. Il vérifie un journal local et établit un suivi descriptif ; dates locales non certifiées et résultats non authentifiés en direct.

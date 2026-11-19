@@ -1,0 +1,9 @@
+IA LOTO V13 — FDJ / Froids 300
+
+1. Exporter le journal JSON de la version actuelle AVANT publication.
+2. Décompresser ce ZIP ; publier tous les fichiers à la racine du même site Netlify.
+3. Ouvrir Safari en HTTPS, vérifier V13 puis dans l’onglet V13 lancer le contrôle SHA-256 et le calcul Froids 300.
+4. Si historique en retard, synchroniser dans Accueil, vérifier le résultat officiel FDJ, et seulement ensuite sauvegarder une nouvelle prévision avant le tirage.
+
+Les anciens enregistrements locaux peuvent dépendre du domaine et de Safari. Conserver le JSON.
+La V13 ne promet pas de retrouver les numéros gagnants.

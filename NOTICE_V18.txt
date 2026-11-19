@@ -1,0 +1,9 @@
+IA LOTO V18 — Installation Netlify
+
+1. Sauvegarder les journaux JSON des versions précédentes.
+2. Décompresser le ZIP et publier les fichiers à la racine du site Netlify.
+3. Ouvrir Safari sur HTTPS, vérifier V18 puis lancer les tests automatiques V18.
+4. Importer un CSV FDJ décompressé, si disponible, après vérification personnelle de sa provenance.
+5. Les ajouts V18 sont conservés dans le navigateur et exportables. Sauvegarder le journal séparément.
+
+Aucun avantage prédictif démontré. Un historique importé et un horodatage local ne valent pas certification externe.

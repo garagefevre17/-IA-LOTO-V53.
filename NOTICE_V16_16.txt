@@ -1,0 +1,8 @@
+IA LOTO V16.16 — Mode d’emploi
+
+1. Exporter les journaux JSON avant le déploiement.
+2. Publier tous les fichiers décompressés à la racine de Netlify.
+3. Ouvrir l’onglet V16.16, importer un CSV de tirages nouveaux, confirmer la provenance et lancer le test.
+4. Le bilan compare la probabilité de chaque tirage (cinq numéros + Chance) selon le modèle adaptatif et selon le hasard uniforme.
+5. Les dates manquantes et les contradictions bloquent les calculs. Aucune donnée historique ou prévision n’est écrasée.
+6. Le CSV n’est pas authentifié cryptographiquement et aucune méthode gagnante n’est démontrée.

@@ -1,0 +1,9 @@
+IA LOTO V19 — refonte et corrections.
+
+DEPLOIEMENT: extraire ce ZIP, publier TOUS les fichiers à la racine du même site Netlify. Vérifier titre V19 et faire Ctrl+R / recharger Safari. Le domaine doit rester identique pour conserver localStorage.
+
+SAUVEGARDE: avant installation, exporter les journaux précédents. Le module V19 permet de sauvegarder les données/journaux V18 et de les restaurer sans écrasement de dates contradictoires.
+
+CHANGEMENTS: nouveau contrôle automatique V19, sauvegarde unique, restauration non destructive, simplification navigation, nouvelle version cache, réparation des libellés, validation de dates et de journaux, rollback sur erreur. Anciens modules conservés.
+
+LIMITES: aucun moteur n'a démontré une capacité supérieure au hasard; aucune mise supplémentaire justifiée. Importer un CSV officiel ne suffit pas à certifier sa provenance cryptographique.

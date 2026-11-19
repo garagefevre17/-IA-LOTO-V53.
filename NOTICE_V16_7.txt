@@ -1,0 +1,11 @@
+IA LOTO V16.7 — moteur de recherche sur la combinaison complète
+
+INSTALLATION : sauvegarder les journaux JSON actuels, puis déployer le contenu DECOMPRESSE du ZIP à la racine du même site Netlify. Le fichier index.html doit se trouver à la racine.
+
+NOUVEAU : onglet V16.7, formule exacte d'une combinaison de 5 boules sans remise et Chance, mélange pondéré avec la référence uniforme, recherche heuristique par échange de numéros (pas une optimisation exhaustive) et test chronologique rétrospectif. Les anciens modules et journaux V16.6 sont laissés inchangés.
+
+VERIFICATIONS : 2 833 lignes disponibles dans le jeu intégré (jusqu'au 11 novembre 2026), normalisation de la référence uniforme, poids du mélange, reproductibilité de la sélection, syntaxe JavaScript. Test chronologique 100 tirages : écart de log-perte modèle - uniforme = -0.0000321 ; intervalle indicatif [-0.0003923 ; 0.0003281]. Ce résultat NE démontre pas d'avantage, les archives ont été utilisées lors des précédentes études et le test n'est pas prospectif.
+
+IMPORTANT : le score d'une grille selon une hypothèse de modèle n'est PAS sa probabilité réelle de jackpot. Dans un tirage équitable chaque grille a 1 chance sur 19 068 840. Ne pas augmenter les mises ; ne pas utiliser l'argent destiné au garage.
+
+Le fonctionnement complet des boutons dans Safari n'a pas ete certifie dans cet environnement.

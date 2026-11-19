@@ -1,0 +1,12 @@
+IA LOTO V26 — VERSION ADAPTÉE À TON DÉPÔT MANUEL NETLIFY
+
+1. Cette archive conserve tous les fichiers V25 et ajoute le tableau v26.html.
+2. Décompresse le ZIP dans l’application Fichiers de l’iPhone.
+3. Dans Netlify, ouvre le site EXISTANT puis la section Deploys et dépose le dossier décompressé selon les options disponibles.
+4. Vérifie https://deft-starship-da00fb.netlify.app/v26.html
+
+ATTENTION : ce dépôt manuel publie uniquement les fichiers statiques. Il ne crée PAS de fonction planifiée ni de base de données et ne rend PAS le site autonome. Le tableau l'affiche clairement.
+
+Pour une V26 réellement autonome, il faudra un déploiement de fonctions Netlify via un projet avec build ou CLI, un stockage persistant, une source officielle vérifiée et un mécanisme d'horodatage indépendant. Les fonctions planifiées Netlify sont disponibles sur tous les forfaits, mais ne sont pas activées par la simple présence d'un ZIP statique.
+
+La validation prospective ne doit pas être rétrospectivement inventée. Les anciens numéros joués ne sont pas réutilisés.

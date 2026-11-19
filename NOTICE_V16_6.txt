@@ -1,0 +1,9 @@
+IA LOTO V16.6 — Journal prospectif experimental
+
+Sauvegardez le journal JSON historique AVANT mise à jour.
+La V16.6 crée un stockage séparé pour les nouveaux protocoles.
+Depuis l’onglet V16.6, une action explicite enregistre les trois méthodes pour une même date.
+L’action est bloquée si la base est périmée, si le tirage est passé ou si la date a déjà été enregistrée.
+Les résultats sont calculés à partir de la base locale : vérifiez toujours avec la FDJ.
+Exportez le JSON vers un service extérieur AVANT le tirage si vous recherchez une preuve chronologique indépendante.
+Aucune prédiction n’est garantie.

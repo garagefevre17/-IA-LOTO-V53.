@@ -1,0 +1,23 @@
+IA LOTO V16 — Distribution exacte des combinaisons et validation séquentielle
+
+INSTALLATION
+1. Exportez le journal JSON de votre ancienne application.
+2. Décompressez le ZIP et publiez TOUS les fichiers ensemble à la racine de Netlify.
+3. Ouvrez dans Safari sur HTTPS, actualisez, choisissez l’onglet V16.
+4. Lancez les contrôles mathématiques, puis la comparaison des modèles.
+
+NOUVEAU
+- Distribution de probabilité des cinq numéros sans remise : P(S)=produit(poids des numéros de S)/E5(poids). E5 est la somme de tous les produits des sous-ensembles de cinq numéros.
+- Distribution catégorielle à 10 issues distincte pour Chance.
+- 12 variantes (4 familles × 3 intensités) ; choix sur 400 tirages de réglage puis évaluation sur 400 tirages ultérieurs qui n’ont pas servi au réglage de la V16.
+- Comparaison contre l'uniforme théorique 1 / 19 068 840 ; intervalle bootstrap par blocs de 20.
+- Les sélections V16 ne modifient pas le journal V6–V15. Froids 300 inchangé.
+
+RESULTAT REPRODUIT SUR LA BASE EMBARQUEE (au 11/11/2026)
+400 tirages de réglage, 400 de contrôle ; modèle choisi : anti-fréquence 300, intensité 0,04.
+Écart moyen de log-perte par rapport au hasard : +0,00603 (positif = moins bon).
+Intervalle bootstrap descriptif 95 % : [-0,00069 ; +0,01349]. Aucun avantage démontré.
+
+LIMITES
+Historique précédemment étudié dans les V6–V15 : le contrôle est chronologique et sans fuite au niveau du code, mais pas prospectif/indépendant du processus global de recherche.
+Aucun logiciel ne peut garantir de trouver les 5 numéros et le Chance pour un tirage équitable. N’augmentez pas vos mises pour financer votre garage.

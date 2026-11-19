@@ -1,0 +1,8 @@
+IA LOTO V16.9 — bilan prospectif exact
+1. Exporter les anciens journaux JSON depuis la version en ligne.
+2. Décompresser le ZIP puis déployer le contenu à la racine Netlify.
+3. Ouvrir dans Safari HTTPS et lancer V16.9 → Vérifier et mesurer les performances.
+4. Le système contrôle le journal V16.6 via le module V16.8 puis calcule les probabilités exactes.
+5. Aucun journal n’est modifié, les résultats locaux ne sont pas des résultats officiellement certifiés.
+6. Une mise à jour de l’historique est nécessaire après les nouveaux tirages ; la synchronisation de source secondaire ne certifie pas la provenance FDJ.
+7. Aucun algorithme n’a démontré d’avantage prédictif sur le hasard.

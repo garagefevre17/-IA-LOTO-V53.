@@ -1,0 +1,11 @@
+IA LOTO V11 — APPLICATION POUR NETLIFY / SAFARI
+
+1. Dans la V10, exporter ton journal JSON (Données > Exporter JSON).
+2. Extraire ce ZIP puis publier TOUS les fichiers du dossier racine sur Netlify (index.html, app.js, data.js, science10.js, science11.js, ev.js, sw.js, manifest.webmanifest).
+3. Ouvrir le site HTTPS dans Safari, vérifier la mention V11 et exécuter les tests internes.
+4. Ouvrir Lab V11 : lancer 300 ou 1 000 tirages, puis le contrôle mathématique.
+5. Restaurer le journal JSON si nécessaire ; ne pas écraser les prévisions V6.
+
+Le module Lab V11 compare quatre modèles sur la probabilité jointe des cinq numéros sans remise + chance, en log-score contre la référence équitable. Les résultats sont historiques/exploratoires : pas de preuve de prédiction gagnante. La provenance FDJ de l'archive intégrée n'est pas certifiée.
+
+N'augmente pas tes dépenses de jeu en fonction des scores historiques. Les économies prévues pour le garage ne doivent pas servir de capital de loterie.

@@ -1,0 +1,10 @@
+IA LOTO V21.1 — correctif du bouton « Ouvrir le centre »
+
+- Navigation du bouton Accueil désormais directe, sans dépendance au chargement du module V17.
+- Bouton Modules avancés également indépendant du module V19.
+- Cache du service worker renouvelé pour forcer les nouveaux fichiers.
+- Les clefs du stockage local et les journaux existants ne sont pas modifiés.
+
+Installation : sauvegarder d'abord les journaux JSON ; publier l'ensemble des fichiers décompressés à la racine du même site Netlify ; vérifier V21.1 dans Safari et tester les deux boutons.
+
+Tests : scripts JS contrôlés par Node ; actions des deux boutons contrôlées dans Chromium avec une page DOM isolée. L'accès de Chromium au serveur localhost a été bloqué, donc le test d'intégration Safari reste à confirmer.

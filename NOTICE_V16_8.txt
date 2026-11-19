@@ -1,0 +1,6 @@
+IA LOTO V16.8 — Audit non destructif du journal de prévisions.
+1. Sauvegarder tous les journaux JSON avant de remplacer le site.
+2. Publier tous les fichiers extraits à la racine du projet Netlify.
+3. Ouvrir V16.8 puis « Auditer les prévisions enregistrées ».
+4. Exporter le rapport d’audit JSON.
+Aucune preuve de prédiction supérieure au hasard ; le résultat des tirages doit être confirmé auprès de la FDJ.

@@ -1,0 +1,25 @@
+IA LOTO V21 — Centre unifié et réparations (14 novembre 2026)
+
+1. Sauvegarder les journaux JSON AVANT mise à jour.
+2. Décompresser ce ZIP et publier TOUS les fichiers à la racine du site Netlify.
+3. Ouvrir Safari sur le même domaine, actualiser puis vérifier le titre V21.
+4. V21 > « Actualiser tous les journaux » puis « Contrôler les empreintes ».
+5. Tester « Tests approfondis » et exporter l'inventaire JSON hors du téléphone.
+
+Corrections :
+- Navigation et marges de sécurité iPhone corrigées.
+- Inventaire en lecture seule des journaux anciens V4–V16, V17 et V18–V21.
+- Détection d'entrées malformées et vérification SHA-256 V17/V18.
+- Conservation sans fusion ni écrasement automatique des anciens journaux.
+- Avant restauration et avant nouvel enregistrement V18 : contrôle des empreintes du journal déjà présent.
+- Mise à jour du cache hors ligne V21, incluant tous les scripts nécessaires.
+- En-tête, manifest et libellés principaux adaptés à V21.
+
+Prudence :
+- Ne pas supprimer les données Safari ou changer de domaine sans sauvegarde.
+- L'inventaire V21 est un export de secours, pas un format de restauration automatique.
+- Des sauvegardes anciennes peuvent contenir les mêmes prédictions à plusieurs endroits : leur nombre n'est pas une preuve de performance.
+- Les historiques du centre V21 et de modules anciens ne sont PAS fusionnés automatiquement afin d'éviter des conflits.
+- SHA-256 ne certifie ni le temps d'enregistrement ni la provenance FDJ.
+- Aucun avantage sur un tirage LOTO équitable n'est démontré.
+- Test complet iOS/Safari non effectué dans cet environnement.

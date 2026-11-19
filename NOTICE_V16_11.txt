@@ -1,0 +1,9 @@
+IA LOTO V16.11 — Comparateur CSV de résultats FDJ (sans écraser les données)
+
+1. Avant installation, exporter les journaux JSON V16.6 et historiques.
+2. Décompresser ce ZIP. Déployer TOUS les fichiers à la racine Netlify.
+3. Dans Safari, ouvrir l’onglet V16.11 puis choisir le CSV d’archive FDJ extrait du ZIP.
+4. Le logiciel lit les colonnes FDJ originales, compare chaque date avec l’historique local, et n'évalue que les prévisions V16.6 intègres portant sur une date concordante.
+5. Exporter le rapport JSON ou les écarts CSV. Aucune donnée ni prévision n’est remplacée par ce contrôle.
+
+L'importation ne prouve pas que le CSV provient de la FDJ et ne certifie pas les horodatages locaux. Aucune supériorité prédictive démontrée.

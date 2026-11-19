@@ -1,0 +1,13 @@
+IA LOTO V26 - IMPORTANT
+
+Ce ZIP contient le logiciel, le moteur Python et le workflow GitHub Actions.
+Un DEPOT MANUEL sur Netlify ne lance PAS les actions GitHub : l’autonomie reste inactive.
+
+MISE EN SERVICE :
+1. Créer un dépôt GitHub privé et y importer le contenu de cette archive, y compris le dossier .github (attention, dossier caché).
+2. GitHub > Settings > Secrets and variables > Actions : créer FDJ_OFFICIAL_FEED_URL (URL HTTPS d’un fichier CSV ou JSON OFFICIEL contrôlé) ; configurer la variable FDJ_FEED_AUDITED=yes seulement après vérification de la provenance et du format. Sans cela le moteur refuse de produire des prévisions.
+3. Ajouter NETLIFY_AUTH_TOKEN et NETLIFY_SITE_ID aux secrets du dépôt pour publier automatiquement sur ton site Netlify. Ne jamais communiquer ces secrets dans un chat.
+4. GitHub > Actions > IA LOTO V26 > Run workflow pour vérifier le fonctionnement. Les exécutions planifiées GitHub peuvent être retardées.
+5. Ouvrir https://TON-SITE.netlify.app/v26.html.
+
+LIMITES : la source FDJ officielle n'est PAS configurée dans cette archive. Le contrôle des formats de source est à effectuer avant activation. Les prévisions ne deviennent pas prospectives certifiées automatiquement : le journal les marque non certifiées tant qu'une preuve externe de publication AVANT le tirage n'a pas été vérifiée. Le système ne garantit aucun numéro gagnant.

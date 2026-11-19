@@ -1,0 +1,4 @@
+IA LOTO V16.3 — Nouveau module adaptatif.
+Sauvegarder le journal JSON avant déploiement. Publier TOUS les fichiers à la racine du site Netlify.
+Ouvrir onglet V16.3. Ce modèle ne promet aucun avantage sur un LOTO équitable.
+Les prévisions précédentes restent stockées dans le navigateur; la mise à jour du site ne garantit pas leur persistance : exporter avant la publication.

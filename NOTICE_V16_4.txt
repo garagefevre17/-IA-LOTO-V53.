@@ -1,0 +1,8 @@
+IA LOTO V16.4 — MISE À JOUR
+1. Exporter le journal JSON avant toute installation.
+2. Publier le contenu de ce ZIP à la racine du site Netlify.
+3. Ouvrir l'onglet V16.4, puis lancer le contrôle séparé.
+4. Les méthodes anciennes et les prévisions existantes ne sont pas réécrites.
+5. Les paramètres sont choisis sur le développement et évalués sur une autre période.
+6. Les mêmes archives ayant déjà été explorées, cette évaluation reste rétrospective.
+7. Aucun avantage prédictif ni jackpot ne sont garantis.

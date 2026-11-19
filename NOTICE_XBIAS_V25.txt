@@ -1,0 +1,7 @@
+IA LOTO V25 — X-BIAS.
+Importer l’ensemble des fichiers dans le même site Netlify sans changer le domaine.
+Sauvegarder les journaux V16.6/V18/V24 avant mise à jour. Le journal X-BIAS est indépendant.
+X-BIAS n’a aucune capacité prédictive démontrée supérieure au hasard.
+Le seuil Z=3.6, la fenêtre 800 et la nécessité de concordance des deux moitiés sont figés.
+Les e-values sont des tests sur nombre de correspondances conditionnellement au hasard uniforme, calculés rétrospectivement, donc non certifiés prospectifs.
+L’heure des sauvegardes n’est pas certifiée par un serveur.
