@@ -1,0 +1,15 @@
+{
+  "version": "53.4-deploiement-securise",
+  "files": {
+    ".github/workflows/ia-loto-autonome.yml": "0fc7f5b743141c76f38334a2367bba49de8f5e9bb32232e1d47fa0699651db9d",
+    "INSTALLATION_IPHONE.md": "3fe5bc211579d2b03ede2afaa5e3985517ec846faaec6bbe41767df9e6cb5604",
+    "RAPPORT_AUDIT_V53_4.md": "5ce882e2a88ee33d2dc8e7ade26fc5447322bfe2dbc75c5f36482c15476eb18d",
+    "automation/pipeline.py": "8c0f5767e7d60bf34a48be7756b3404df1ddcb73199263511df37d86edc3cc85",
+    "automation/timestamp.py": "ae297c3a3fb93a75cb6766ae9f1e172dc690d0aba8aa557e1d7bf75227c63a3a",
+    "automatisation/README.md": "decfafb7e059c7bf81342685d2ad712b1c77187c42df4822af02d018e35908bc",
+    "automatisation/index.html": "d5c931c415fe30db683f0217d9d4a473ef450e5b203630c5ede47dcd01503e69",
+    "tests/test_automation.py": "64a7667dad88fcdcfe5803c54275414a8b1b610e0088c722c3df4d04b0422886",
+    "tests/test_deep_security.py": "b38e3b5280d6ac2f34e69db5cd5e83f5221a7b5493c270df976947a36b07c0ff",
+    "tests/test_deployment_policy.py": "aaab915d4965c92df62cf146da94d2b99bcacd20ed0cf97f3f118733182b28c6"
+  }
+}
