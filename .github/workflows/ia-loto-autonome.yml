@@ -1,0 +1,190 @@
+# IA LOTO V53.4 — tests, validation et production sous verrou.
+# Installer dans .github/workflows/ia-loto-autonome.yml.
+# Ne pas activer IA_LOTO_PRODUCTION_ENABLED avant un essai reseau valide.
+name: IA LOTO V53.4 - controle scientifique
+
+on:
+  pull_request:
+  push:
+    branches: [main, test-autonomie-v53-4]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "validation (aucune publication) ou production (verrouillee)"
+        required: true
+        default: validation
+        type: choice
+        options: [validation, production]
+  schedule:
+    # GitHub Actions ne garantit pas un demarrage a l'heure exacte.
+    # 08:15 UTC = 09:15 (hiver) ou 10:15 (ete) en France.
+    - cron: '15 8 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ia-loto-v53-4-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Lire le code sans droits d'ecriture
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Construire la structure des modules dans le runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p automation tests
+          for file in pipeline.py timestamp.py; do
+            if [ ! -f "automation/$file" ]; then
+              test -f "$file" || { echo "Fichier manquant : $file"; exit 1; }
+              cp "$file" "automation/$file"
+            fi
+          done
+          for file in test_automation.py test_deep_security.py test_deployment_policy.py; do
+            if [ ! -f "tests/$file" ]; then
+              test -f "$file" || { echo "Test manquant : $file"; exit 1; }
+              cp "$file" "tests/$file"
+            fi
+          done
+      - name: Syntaxe Python et JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m compileall -q automation tests
+          node --check app.js
+      - name: Executer tous les tests V53.4
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+
+  validation-reelle:
+    # Autorisee sur une branche de test si le workflow est connu de GitHub.
+    # Aucune permission d'ecriture ni push dans ce job.
+    needs: [tests-pr]
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Lire le depot sans droit de publication
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparer les scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p automation
+          for file in pipeline.py timestamp.py; do
+            if [ ! -f "automation/$file" ]; then cp "$file" "automation/$file"; fi
+          done
+      - name: Collecter les archives FDJ et calculer
+        run: python automation/pipeline.py --check
+      - name: Horodatage RFC 3161 et verification stricte
+        env:
+          FREETSA_CA_SHA256: ${{ vars.FREETSA_CA_SHA256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python automation/timestamp.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('automatisation/horodatage.json')
+          if not p.is_file():
+              raise SystemExit('Validation bloquee : rapport de preuves absent')
+          report = json.loads(p.read_text(encoding='utf-8'))
+          proofs = report.get('forecasts')
+          if report.get('status') != 'verified' or not isinstance(proofs, list) or not proofs:
+              raise SystemExit('Validation bloquee : aucune preuve independante valide')
+          if not all(item.get('proof') is True for item in proofs):
+              raise SystemExit('Validation bloquee : une preuve est non verifiee')
+          PY
+      - name: Conserver les diagnostics de validation (sans commit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-v53-4-${{ github.run_id }}
+          path: automatisation/
+          retention-days: 7
+          if-no-files-found: warn
+
+  production:
+    # Le verrou doit etre ACTIVE manuellement apres validation reelle.
+    # Il reste ferme par defaut et pour toute branche differente de main.
+    needs: [tests-pr]
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      vars.IA_LOTO_PRODUCTION_ENABLED == 'true' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'production'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - name: Lire le depot pour publication conditionnelle
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparer les scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p automation
+          for file in pipeline.py timestamp.py; do
+            if [ ! -f "automation/$file" ]; then cp "$file" "automation/$file"; fi
+          done
+      - name: Recuperer les resultats FDJ et calculer
+        run: python automation/pipeline.py --check
+      - name: Horodater et verifier les fichiers
+        env:
+          FREETSA_CA_SHA256: ${{ vars.FREETSA_CA_SHA256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python automation/timestamp.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('automatisation/horodatage.json')
+          if not p.is_file():
+              raise SystemExit('Publication bloquee : rapport absent')
+          report = json.loads(p.read_text(encoding='utf-8'))
+          proofs = report.get('forecasts')
+          if report.get('status') != 'verified' or not isinstance(proofs, list) or not proofs:
+              raise SystemExit('Publication bloquee : aucune preuve verifiee')
+          if not all(item.get('proof') is True for item in proofs):
+              raise SystemExit('Publication bloquee : preuve manquante')
+          PY
+      - name: Publier uniquement les sorties verifiees
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- automatisation/
+          if ! git diff --cached --quiet; then
+            git commit -m 'IA LOTO V53.4 : preuves prospectives verifiees'
+            git push origin HEAD:main
+          fi
