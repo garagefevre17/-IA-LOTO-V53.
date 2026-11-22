@@ -1,0 +1,37 @@
+IA LOTO V53.4 — Correctif de cohérence pour la branche test-autonomie-v53-4
+
+OBJECTIFS
+- V22, V23, V24 et X-BIAS V25 lisent la même vue historique, basée sur V18 et sur les tirages supplémentaires déjà enregistrés par le tableau de bord principal (sans modifier aucun historique existant).
+- Les dates et les trous d'historique sont vérifiés. Si deux sources se contredisent, les moteurs refusent le calcul ; aucun tirage ne sera inventé.
+- Un panneau supplémentaire présente les quatre journaux locaux existants en lecture seule, sans les modifier. Il ne remplace PAS la certification FDJ ou la preuve externe RFC 3161.
+- Le cache hors ligne est versionné pour charger le nouveau module quand le correctif sera un jour déployé.
+
+IMPORTANT
+- Ce correctif est une correction locale PREPAREE, pas un déploiement effectué sur GitHub.
+- Il ne modifie ni le dépôt distant ni la branche main, et ne fait aucun push, commit ou merge.
+- Les tirages provenant de Lottochaos ou d'un import utilisateur restent NON certifiés FDJ.
+- Les journaux existants restent dans leurs clés d'origine. Le tableau commun est un index en lecture seule, pas une certification ni une fusion persistante.
+- Les tests de logique ont été effectués sur des cas artificiels (normal, données manquantes, contradictions, cache, branche protégée). Il faut encore exécuter les tests du dépôt complet et un essai dans le navigateur avant toute publication.
+
+INSTALLATION SUR UN CODESPACE DE TEST
+1. Ouvrir le Codespace sur la branche 'test-autonomie-v53-4' (pas main).
+2. Ajouter le seul fichier INSTALLER_CORRECTION_IA_LOTO_V53_4.py à la RACINE du dépôt (au même niveau que index.html).
+3. Dans le terminal du Codespace, entrer exactement :
+   python3 INSTALLER_CORRECTION_IA_LOTO_V53_4.py
+4. Vérifier le message de réussite et ensuite contrôler les changements Git. Ne pas valider les fichiers *.pyc et __pycache__.
+5. NE PAS fusionner vers main. Vérifier au préalable les tests GitHub Actions et les données FDJ.
+
+Le script refuse toute branche différente de test-autonomie-v53-4, toute modification non enregistrée des fichiers cibles, toute différence inattendue de version et tout écrasement d'un module déjà présent.
+
+TESTS EFFECTUES HORS LIGNE
+- 10 vérifications de comportement et sécurité dans test_shared.cjs.
+- Vérification de syntaxe JavaScript : node --check.
+- Correctifs idempotents dans les six fichiers visés.
+- Essai d'installation sur un dépôt Git synthétique : OK.
+
+FICHIERS TOUCHES PAR L'INSTALLATEUR
+index.html, v22.js, v23.js, v24.js, xbias25.js, sw.js
+NOUVEAU : loto_v534_shared.js
+
+FICHIERS EXCLUS
+app.js, data.js, v18.js, tous les journaux et sauvegardes, fichiers GitHub Actions, branche main.
