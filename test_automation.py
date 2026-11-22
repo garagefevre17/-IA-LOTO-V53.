@@ -118,7 +118,7 @@ class PipelineTests(unittest.TestCase):
         def fake_get(url):
             return page if url.endswith('/historique') else buf.getvalue()
         with patch.object(pipeline,'get',side_effect=fake_get):
-            actual,sources=pipeline.fetch_history('euromillions')
+            actual,sources=pipeline.fetch_history('euromillions', as_of=target)
         self.assertEqual(len(actual),len(rows))
         self.assertEqual(actual[-1],rows[-1])
         self.assertEqual(len(sources[0]['zip_sha256']),64)
@@ -147,7 +147,7 @@ class HardeningTests(unittest.TestCase):
         payload={first:archive(allrows[-40:]),second:archive(allrows[:-40])}
         def fake(url):return page if url.endswith('/historique') else payload[url]
         with patch.object(pipeline,'get',side_effect=fake):
-            rows, sources=pipeline.fetch_history('euromillions')
+            rows, sources=pipeline.fetch_history('euromillions', as_of=target)
         self.assertEqual(rows,allrows)
         self.assertEqual(len(sources),2)
         self.assertEqual(build_forecast('euromillions',rows,target)['count'],len(expected_dates('euromillions',target-timedelta(days=365),target-timedelta(days=1))))
