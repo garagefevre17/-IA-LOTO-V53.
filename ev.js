@@ -14,19 +14,42 @@ const low=calc(J,Math.round(N*.5),cost,null), high=calc(J,Math.round(N*1.5),cost
 out.className='status good';out.innerHTML=h;}
 function compareJackpot(event){
  event.preventDefault();
- const jackpot=$('scenarioJackpot').valueAsNumber;
+ const jackpotInput=$('scenarioJackpot'), budgetInput=$('scenarioBudget');
+ const jackpot=jackpotInput.valueAsNumber, budget=budgetInput.valueAsNumber;
  const cost=$('scenarioCost').valueAsNumber;
  const secondaryInput=$('scenarioSecondary');
  const omitted=secondaryInput.value==='';
  const secondary=omitted?0:secondaryInput.valueAsNumber;
  const combinations=$('scenarioGame').value==='loto'?total:139838160;
  const output=$('scenarioOutput');
- if(![jackpot,cost,secondary].every(Number.isFinite)||jackpot<=0||cost<=0||secondary<0||
+ const hasJackpot=jackpotInput.value!=='', hasBudget=budgetInput.value!=='';
+ const costCents=Math.round(cost*100), budgetCents=Math.round(budget*100);
+ if(!hasJackpot&&!hasBudget){
+  output.textContent='Saisis un budget, un jackpot ou les deux.';
+  return;
+ }
+ if(!Number.isSafeInteger(costCents)||costCents<=0||
+    (hasBudget&&(!Number.isSafeInteger(budgetCents)||budgetCents<0))||
+    (hasJackpot&&(!Number.isFinite(jackpot)||jackpot<=0))||!Number.isFinite(secondary)||secondary<0||
     !Number.isFinite(3*combinations*Math.abs(cost-secondary))){
   output.textContent='Vérifie les montants saisis.';
   return;
  }
  const euros=new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'});
+ const children=[];
+ if(hasBudget){
+  const count=Math.min(combinations,Math.floor(budgetCents/costCents));
+  const integer=new Intl.NumberFormat('fr-FR');
+  const percent=new Intl.NumberFormat('fr-FR',{style:'percent',maximumFractionDigits:10});
+  const coverage=document.createElement('p');
+  coverage.textContent='Couverture sur un même tirage : '+integer.format(count)+' / '+integer.format(combinations)+
+   ' ('+percent.format(count/combinations)+'). Coût théorique : '+euros.format(count*costCents/100)+'.';
+  children.push(coverage);
+ }
+ if(!hasJackpot){
+  output.replaceChildren(...children);
+  return;
+ }
  const intro=document.createElement('p');
  intro.textContent=omitted?'Hypothèse : 0 € de gains secondaires moyens par grille.':
   'Gains secondaires moyens supposés : '+euros.format(secondary)+' par grille.';
@@ -39,7 +62,7 @@ function compareJackpot(event){
    ' · gain net moyen '+euros.format(net)+' par grille.';
   scenarios.append(item);
  }
- output.replaceChildren(intro,scenarios);
+ output.replaceChildren(...children,intro,scenarios);
 }
 $('jackpotScenarios')?.addEventListener('submit',compareJackpot);
 function selfcheck(){let sum=ranks.reduce((a,r)=>a+r.share,0);if(Math.abs(sum-1)>1e-12||Math.abs(total-19068840)>1e-6||Math.abs(ranks.reduce((a,r)=>a+pRank(r),p1)-(.1669))>.01)throw Error('Erreur de contrôle des probabilités');return true;}
