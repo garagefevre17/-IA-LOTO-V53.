@@ -1,14 +1,23 @@
-IA LOTO V53.5 — correctif branché sur l’architecture V53 existante
+IA LOTO V53.5.1 — correctif renforcé (24 novembre 2026)
 
-Contenu :
-- INSTALLER_IA_LOTO_V53_5_TEST.py : installateur local à déposer à la racine du dépôt sur test-autonomie-v53-4 uniquement. Il n’effectue ni commit, ni push, ni fusion.
-- Correction de lecture commune des historiques pour V22/V23/V24/X-BIAS, avec blocage sur trou de dates ou contradictions.
-- EuroMillions : le CSV importé est conservé dans IndexedDB (sur le même navigateur et domaine) puis rechargé à l’ouverture. Si aucun historique en mémoire, recherche le fichier euromillions-history.csv publié dans le dépôt. Aucun téléchargement FDJ prétendu ou garantie de certification.
-- Les journaux restent dans leurs stockages respectifs; le panneau commun est en lecture seule.
+But : améliorer la fiabilité TECHNIQUE, sans prétention de prédiction gagnante.
 
-Commande à lancer dans le terminal à la racine du Codespace :
-python3 INSTALLER_IA_LOTO_V53_5_TEST.py
+1. Corrige le défaut de sauvegarde EuroMillions : l'ancien import asynchrone pouvait terminer après le contrôle de sauvegarde. Le nouvel import attend la validation du CSV avant d'écrire dans IndexedDB.
+2. L'historique EuroMillions réapparaît à la réouverture du même navigateur/domaine tant que le stockage local est conservé. Un fichier euromillions-history.csv publié peut aussi être lu si présent, avec contrôle des contradictions vis-à-vis du local.
+3. Les moteurs LOTO V22, V23, V24 et X-BIAS utilisent la même vue en lecture seule des résultats disponibles. Une rupture du calendrier ou des résultats contradictoires bloque le calcul.
+4. Les journaux existants ne sont pas écrasés et restent distincts; un tableau de consultation compte leurs entrées. Il ne remplace ni certification FDJ ni horodatage indépendant.
+5. L'installateur refuse toute branche autre que test-autonomie-v53-4, refuse d'écraser les fichiers source modifiés, vérifie la syntaxe avant l'écriture et ne fait ni commit, ni push, ni déploiement.
 
-ATTENTION : l’installateur refuse tout fichier source déjà modifié localement (protections contre écrasement). Cela peut arriver si des fichiers ont déjà été corrigés dans la branche de test. Ne pas forcer le script.
+TESTS EXÉCUTÉS :
+- node tests/test_shared.cjs : 10 vérifications de dates/contradictions/stockage : OK
+- test_euromillions_runtime.cjs : CSV de test, sauvegarde IndexedDB simulée, fenêtre 365 jours, 3 grilles : OK
+- python3 -m py_compile de l'installateur : OK
 
-LIMITES : aucune nouvelle donnée EuroMillions officielle n’est fournie dans ce correctif; le navigateur n’importe pas les ZIP FDJ automatiquement. Le fonctionnement complet nécessite des essais dans le navigateur sur la branche de test. Le site public reste inchangé.
+NON VALIDÉS : fonctionnement sur iPhone réel, archivage FDJ officiel, téléchargement ZIP FDJ, déploiement GitHub Pages, certification des numéros, avantage prédictif.
+
+Installation UNIQUEMENT depuis le dossier racine du dépôt sur la branche test-autonomie-v53-4 :
+  python3 INSTALLER_IA_LOTO_V53_5_1.py
+
+IMPORTANT : le fichier installateur doit d'abord être copié dans le Codespace. Ce ZIP n'installe rien à lui seul. Le site public sur main reste inchangé.
+
+Une sélection LOTO ou EuroMillions ne peut pas garantir de gains; tester sans miser.
