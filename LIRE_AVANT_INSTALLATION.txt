@@ -1,1 +1,14 @@
-IA LOTO V9 - Nouvelle section Valeur : simulation hypothétique Grand Loto sans gagnant du jackpot. Les résultats ne prédisent aucun gain et ne permettent pas, à eux seuls, de calculer la rentabilité. Conserve et exporte ton journal avant mise à jour. Dépose les fichiers à la racine du site Netlify. Nouvelle version du service worker incluse. Source : règlement FDJ 30 mars 2026, articles 8.3.3 et 8.3.4.
+IA LOTO V53.5 — correctif branché sur l’architecture V53 existante
+
+Contenu :
+- INSTALLER_IA_LOTO_V53_5_TEST.py : installateur local à déposer à la racine du dépôt sur test-autonomie-v53-4 uniquement. Il n’effectue ni commit, ni push, ni fusion.
+- Correction de lecture commune des historiques pour V22/V23/V24/X-BIAS, avec blocage sur trou de dates ou contradictions.
+- EuroMillions : le CSV importé est conservé dans IndexedDB (sur le même navigateur et domaine) puis rechargé à l’ouverture. Si aucun historique en mémoire, recherche le fichier euromillions-history.csv publié dans le dépôt. Aucun téléchargement FDJ prétendu ou garantie de certification.
+- Les journaux restent dans leurs stockages respectifs; le panneau commun est en lecture seule.
+
+Commande à lancer dans le terminal à la racine du Codespace :
+python3 INSTALLER_IA_LOTO_V53_5_TEST.py
+
+ATTENTION : l’installateur refuse tout fichier source déjà modifié localement (protections contre écrasement). Cela peut arriver si des fichiers ont déjà été corrigés dans la branche de test. Ne pas forcer le script.
+
+LIMITES : aucune nouvelle donnée EuroMillions officielle n’est fournie dans ce correctif; le navigateur n’importe pas les ZIP FDJ automatiquement. Le fonctionnement complet nécessite des essais dans le navigateur sur la branche de test. Le site public reste inchangé.
