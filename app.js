@@ -184,7 +184,33 @@ function test(){const btn=$('testBtn');btn.disabled=true;$('testOutput').textCon
  const predictedMax=Math.max(...methods.map(m=>scores[m]));let sim=1000,exceed=0,rng=prng(0x71A0F07);let totals=[];for(let b=0;b<sim;b++){let sums=new Int32Array(methods.length);for(let i=0;i<preds.length;i++){const sampled=takeRandom(49,5,rng);for(let j=0;j<methods.length;j++)sums[j]+=intersections(preds[i][j].numbers,sampled)}let max=Math.max(...sums);totals.push(max);if(max>=predictedMax)exceed++}let p=(1+exceed)/(sim+1);let sorted=[...methods].sort((a,b)=>scores[b]-scores[a]);lastTestCsv=csv.map(r=>r.map(csvValue).join(',')).join('\n');$('exportTestBtn').disabled=false;const theoretical=25/49;$('testOutput').className='status good';$('testOutput').innerHTML='<strong>Test terminé sur '+count+' tirages</strong><table class="tbl"><tr><th>Méthode</th><th>Bons/ tirage</th></tr>'+sorted.map(m=>'<tr><td>'+esc(m)+'</td><td>'+ (scores[m]/count).toFixed(3)+' ('+scores[m]+'/'+count+')</td></tr>').join('')+'</table><p>Référence théorique : '+theoretical.toFixed(3)+' bon numéro/tirage.</p><p><strong>p globale simulée (meilleur des 7 modèles) : '+p.toFixed(3)+'</strong> • '+sim+' univers de tirages aléatoires simulés.</p><div class="note">Un p élevé ne montre aucun avantage. Un p faible exigerait confirmation future indépendante. Les méthodes ont été choisies après observation d’analyses historiques : ce test n’est donc pas une validation prospective indépendante. Le modèle bayésien actuel et Chauds 100 ont le même classement : ils ne constituent pas deux sources d’information indépendantes.</div>'; }catch(e){$('testOutput').className='status bad';$('testOutput').textContent='Erreur de test : '+e.message}finally{btn.disabled=false}},30)}
 function grids(){let count=Number($('gridCount').value),mode=$('gridMode').value,rng=secureRand(),set=new Set(),arr=[],attempts=0;while(arr.length<count&&attempts++<20000){let a=takeRandom(49,5,rng).sort((a,b)=>a-b);if(mode==='popular'&&a.filter(n=>n>31).length<3)continue;let chance=1+Math.floor(rng()*10),k=a.join('-')+'-'+chance;if(set.has(k))continue;set.add(k);arr.push({numbers:a,chance})}if(arr.length<count)throw Error('Nombre insuffisant de grilles');let ratio=count/19068840;$('gridOutput').className='status good';$('gridOutput').innerHTML='<strong>'+arr.length+' grille(s) distincte(s)</strong>'+arr.map((g,i)=>'<div class="method">Grille '+(i+1)+balls(g)+'</div>').join('')+'<p>Probabilité d’au moins un jackpot pour ces '+count+' combinaisons distinctes, au même tirage : <strong>'+ (100*ratio).toFixed(6)+' %</strong>.</p><small>Plusieurs grilles coûtent plus cher. Aucune garantie de gain ; le critère >31 ne modifie pas la probabilité de sortie.</small>'}
 function selfTest(){let res=[];function chk(label,test){try{if(!test())throw Error('assertion fausse');res.push('✓ '+label)}catch(e){res.push('✗ '+label+' : '+e.message)}}chk('Historique valide',()=>draws.length>=2833&&draws.every(valid));chk('Tirages sans doublons',()=>new Set(draws.map(r=>r[0])).size===draws.length);chk('Froids 300 reproductible',()=>JSON.stringify(choose('froids',draws))===JSON.stringify(choose('froids',draws)));chk('7 stratégies produisent des grilles valides',()=>['froids','chauds','bayes','tendance','retards','consensus_v8','aleatoire'].every(k=>{let v=choose(k,draws);return valid(['2026-11-14',...v.numbers,v.chance])}));chk('Consensus sans double vote bayésien',()=>{let h=draws;let m=['froids','chauds','tendance','retards'].map(k=>choose(k,h));let v=choose('consensus_v8',h);return m.length===4&&v.numbers.length===5});chk('Probabilité jackpot exacte',()=>19068840===1906884*10);chk('Chi² p=1 si statistique 0',()=>chiSquareP(0,48)===1);chk('Normalisation des CSV et validation dates',()=>parseCSV('date,n1,n2,n3,n4,n5,b1\n2026-11-11,4,5,14,17,29,8').length===1);$('selfResult').className='status '+(res.every(x=>x.startsWith('✓'))?'good':'bad');$('selfResult').innerHTML=res.map(esc).join('<br>')}
+function randomGrid(game){
+ const loto=game==='loto';
+ const max=loto?49:50, extraMax=loto?10:12, extraCount=loto?1:2;
+ const output=$('quickGridOutput');
+ if(!globalThis.crypto?.getRandomValues){
+  output.textContent='Le générateur sécurisé est indisponible dans ce navigateur.';
+  return;
+ }
+ const buffer=new Uint32Array(1);
+ function sample(limit,count){
+  const pool=Array.from({length:limit},(_,i)=>i+1);
+  const result=[];
+  for(let i=0;i<count;i++){
+   const bound=pool.length;
+   const accepted=2**32-(2**32%bound);
+   do{crypto.getRandomValues(buffer);}while(buffer[0]>=accepted);
+   result.push(pool.splice(buffer[0]%bound,1)[0]);
+  }
+  return result.sort((a,b)=>a-b);
+ }
+ const numbers=sample(max,5), extras=sample(extraMax,extraCount);
+ const label=loto?'LOTO':'EuroMillions', extraLabel=loto?'Chance':'Étoiles';
+ output.textContent=label+' · '+numbers.join(' – ')+' · '+extraLabel+' : '+extras.join(' – ');
+}
 function wire(){
+ $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
+ $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
  document.querySelectorAll('[data-shortcut]').forEach(button=>button.addEventListener('click',()=>switchPage(button.dataset.shortcut)));
  $('journalSearch').addEventListener('input',showLog);
  window.addEventListener('online',()=>{if(!document.hidden)sync(true);});
