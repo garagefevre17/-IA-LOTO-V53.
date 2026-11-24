@@ -191,6 +191,24 @@ class HardeningTests(unittest.TestCase):
                     timestamp.stamp_file(src)
 
 class AdditionalRegressionTests(unittest.TestCase):
+    def test_history_rotation_retains_old_rows_and_rejects_conflicts(self):
+        import pipeline
+        rows = samples('loto', date(2026, 11, 11), date(2026, 11, 16))
+        first = {'url': 'fixture://old', 'zip_sha256': 'old'}
+        second = {'url': 'fixture://new', 'zip_sha256': 'new'}
+        with tempfile.TemporaryDirectory() as td, patch.object(pipeline, 'DATA_DIR', Path(td)):
+            pipeline.save_history('loto', rows[:2], [first])
+            pipeline.save_history('loto', rows[1:], [second])
+            path = Path(td) / 'loto.json'
+            before = path.read_bytes()
+            stored = json.loads(before)
+            self.assertEqual(stored['draws'], rows)
+            self.assertEqual(stored['source'], [first, second])
+            conflict = dict(rows[1], extras=[(rows[1]['extras'][0] % 10) + 1])
+            with self.assertRaisesRegex(ValueError, 'Contradiction'):
+                pipeline.save_history('loto', [conflict], [second])
+            self.assertEqual(path.read_bytes(), before)
+
     def test_after_cutoff_targets_next_draw(self):
         import pipeline
         from datetime import datetime

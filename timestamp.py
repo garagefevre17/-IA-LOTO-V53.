@@ -16,7 +16,9 @@ import tempfile
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
+if ROOT.name == 'automation':
+    ROOT = ROOT.parent
 JOURNAL = ROOT / 'automatisation' / 'journal'
 PROOFS = ROOT / 'automatisation' / 'preuves'
 PARIS = ZoneInfo('Europe/Paris')

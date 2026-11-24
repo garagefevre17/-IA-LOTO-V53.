@@ -22,7 +22,9 @@ import zipfile
 from zoneinfo import ZoneInfo
 
 PARIS = ZoneInfo('Europe/Paris')
-BASE = Path(__file__).resolve().parents[1]
+BASE = Path(__file__).resolve().parent
+if BASE.name == 'automation':
+    BASE = BASE.parent
 STATE = BASE / 'automatisation' / 'etat.json'
 DATA_DIR = BASE / 'automatisation' / 'donnees'
 JOURNAL = BASE / 'automatisation' / 'journal'
@@ -189,7 +191,7 @@ def parse_csv(content, game):
     return results
 
 
-def fetch_history(game, as_of=None):
+def fetch_history(game, as_of=None, now=None):
     """Collect official archive links, without assuming link ordering.
 
     Only archives that can be parsed under the current game's rules are used.
@@ -202,14 +204,20 @@ def fetch_history(game, as_of=None):
     if len(urls) > 10:
         raise ValueError('Liste FDJ inattendue : trop de liens ZIP')
     rows, archives, rejected = {}, [], []
-    today = as_of or datetime.now(PARIS).date()
+    today = as_of or (now or datetime.now(PARIS)).astimezone(PARIS).date()
     if isinstance(today, datetime):
-        today = today.astimezone(PARIS).date()
-    target = next_draw(game, today, datetime.combine(today, datetime.min.time(), PARIS))
+        now = today
+        today = now.astimezone(PARIS).date()
+    cutoff = now or datetime.combine(today, datetime.min.time(), PARIS)
+    target = next_draw(game, today, cutoff)
     for url in urls:
-        payload = get(url)
+        try:
+            payload = get(url)
+        except (OSError, ValueError) as exc:
+            rejected.append({'url': url, 'reason': str(exc)[:160]})
+            continue
         if not zipfile.is_zipfile(io.BytesIO(payload)):
-            rejected.append({'url':url, 'reason':'réponse non ZIP'})
+            rejected.append({'url': url, 'reason': 'réponse non ZIP'})
             continue
         parsed = []
         try:
@@ -226,6 +234,9 @@ def fetch_history(game, as_of=None):
         except (ValueError, zipfile.BadZipFile, RuntimeError) as exc:
             rejected.append({'url':url, 'reason':str(exc)[:160]})
             continue
+        parsed = [row for row in parsed if result_available(row['date'], today, now)]
+        if not parsed:
+            continue
         for item in parsed:
             old = rows.get(item['date'])
             if old is not None and old != item:
@@ -233,17 +244,6 @@ def fetch_history(game, as_of=None):
             rows[item['date']] = item
         archives.append({'url':url, 'zip_sha256':hashlib.sha256(payload).hexdigest(),
                          'parsed_rows':len(parsed)})
-        # Examine at least two current-period archives when present so an
-        # overlapping boundary is checked, but do not process incompatible
-        # archives from pre-2008 or pre-2016 rules once coverage is complete.
-        if len(archives) >= 2 or len(urls) == 1:
-            data = sorted(rows.values(), key=lambda r:r['date'])
-            try:
-                build_forecast(game, data, target)
-            except ValueError:
-                pass
-            else:
-                return data, archives
     data = sorted(rows.values(), key=lambda r:r['date'])
     if not data:
         raise ValueError('Aucun historique utilisable : ' + str(rejected[:3]))
@@ -255,6 +255,30 @@ def fetch_history(game, as_of=None):
         raise ValueError('Archives FDJ insuffisantes ou périmées : ' + str(exc) +
                          '; archives rejetées : ' + str(rejected[:3])) from exc
     return data, archives
+
+
+def result_available(draw_date, today, now):
+    key = today.isoformat()
+    return draw_date < key or (draw_date == key and
+                               (now is None or now.astimezone(PARIS).hour >= 21))
+
+
+def save_history(game, data, sources):
+    path = DATA_DIR / (game + '.json')
+    rows = {}
+    previous_sources = []
+    if path.exists():
+        previous = json.loads(path.read_text(encoding='utf-8'))
+        rows = {row['date']: row for row in previous['draws']}
+        previous_sources = previous['source']
+    for row in data:
+        old = rows.get(row['date'])
+        if old is not None and old != row:
+            raise ValueError('Contradiction avec l’historique conservé : ' + row['date'])
+        rows[row['date']] = row
+    by_archive = {(src['url'], src['zip_sha256']): src for src in previous_sources + sources}
+    write_json(path, {'source': list(by_archive.values()), 'retrieved_at': stamp(),
+                      'draws': sorted(rows.values(), key=lambda row: row['date'])})
 
 
 def next_draw(game, today, now=None):
@@ -362,18 +386,21 @@ def run(today=None, now=None, histories=None):
     for game in CONFIG:
         try:
             if histories is None:
-                data, sources = fetch_history(game, as_of=today)
+                data, sources = fetch_history(game, as_of=today, now=now)
             else:
                 data = histories[game]
                 sources = [{'url': 'fixture://test', 'zip_sha256': 'fixture'}]
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
-            write_json(DATA_DIR / (game + '.json'), {'source': sources, 'retrieved_at': stamp(), 'draws': data})
+            data = [row for row in data if result_available(row['date'], today, now)]
+            save_history(game, data, sources)
+            results_by_date = {row['date']: row for row in data}
             # Evaluation of all forecasts whose results are present, never overwriting old predictions.
             evaluations = []
             for file in sorted(JOURNAL.glob(game + '-*.json')):
                 target_from_name = file.name[len(game)+1:-5]
                 entry = validate_prior_forecast(file, target_from_name)
-                hit = next((x for x in data if x['date'] == entry['forecast']['target']), None)
+                if entry['forecast'].get('game') != game:
+                    raise ValueError('Jeu de la prévision contradictoire : ' + file.name)
+                hit = results_by_date.get(target_from_name)
                 if hit:
                     # Ignore premature rows and refuse to call uncertified predictions
                     # a prospective success. RFC3161 tokens are checked every time.
@@ -406,7 +433,7 @@ def run(today=None, now=None, histories=None):
             # During the draw day, publishing new prediction is blocked after 18:00 Paris.
             deadline = datetime(target.year, target.month, target.day, 18, 0, tzinfo=PARIS)
             if out.exists():
-                prior = validate_prior_forecast(out, target.isoformat())
+                validate_prior_forecast(out, target.isoformat())
                 info['games'][game] = {'status': 'already_recorded', 'target': target.isoformat(), 'file': out.name, 'evaluated': evaluations}
             elif now.astimezone(PARIS) >= deadline:
                 raise ValueError('Heure limite du tirage dépassée : aucune prévision rétrospective')

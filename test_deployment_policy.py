@@ -2,7 +2,10 @@
 import unittest
 from pathlib import Path
 
-WORKFLOW = Path(__file__).resolve().parents[1] / '.github/workflows/ia-loto-autonome.yml'
+ROOT = Path(__file__).resolve().parent
+if ROOT.name == 'tests':
+    ROOT = ROOT.parent
+WORKFLOW = ROOT / '.github/workflows/ia-loto-autonome.yml'
 
 class DeploymentPolicyTests(unittest.TestCase):
     def test_production_requires_explicit_repo_variable(self):

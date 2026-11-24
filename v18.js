@@ -4,29 +4,37 @@ const $=id=>document.getElementById(id);
 const DATA_KEY='ia_loto_v18_additions_v1', JOURNAL_KEY='ia_loto_v18_prospective_v1';
 let prepared=null,lastReport=null;
 const html=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const nowParis=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-const hourParis=()=>Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
-const base=()=>BASE; // source immuable embarquée, indépendante du stockage des anciens modules
+const {today:nowParis,hour:hourParis,nextDate,availableDate}=window.LotoHistory;
+const base=()=>window.LotoHistory.baseRows();
 const digest=async v=>{if(!crypto?.subtle)throw Error('HTTPS requis pour SHA-256');const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(v)));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('');};
 const readJSON=(key,fallback)=>{const v=localStorage.getItem(key);if(v===null)return fallback;try{return JSON.parse(v)}catch{throw Error('Stockage JSON corrompu : '+key+' (aucune donnée effacée)')}};
 const canonical=r=>[r[0],...r.slice(1,6).sort((a,b)=>a-b),r[6]];
 function valid(r){if(!Array.isArray(r)||r.length!==7||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r[0]))return false;const d=new Date(r[0]+'T12:00:00Z');if(!Number.isFinite(+d)||d.toISOString().slice(0,10)!==r[0]||![1,3,6].includes(d.getUTCDay()))return false;return r.slice(1,6).every(n=>Number.isInteger(n)&&n>=1&&n<=49)&&new Set(r.slice(1,6)).size===5&&Number.isInteger(r[6])&&r[6]>=1&&r[6]<=10;}
-function nextDate(s){const d=new Date(s+'T12:00:00Z');do{d.setUTCDate(d.getUTCDate()+1)}while(![1,3,6].includes(d.getUTCDay()));return d.toISOString().slice(0,10);}
 function additions(){const v=readJSON(DATA_KEY,[]);if(!Array.isArray(v))throw Error('Historique additionnel corrompu : exporte tes sauvegardes, aucune donnée modifiée');return v;}
 function entries(){const v=readJSON(JOURNAL_KEY,[]);if(!Array.isArray(v))throw Error('Journal prospectif corrompu : aucune écriture autorisée');return v;}
-function validateAdditions(v){if(!Array.isArray(v)||v.length>4000)throw Error('Historique additionnel invalide');const root=base().map(canonical),known=new Map(root.map(r=>[r[0],r]));let prev=root.at(-1)[0];for(const item of v){const r=canonical(item);if(!valid(r))throw Error('Tirage ajouté invalide');if(r[0]!==nextDate(prev))throw Error(`Séquence non continue : ${nextDate(prev)} attendu, ${r[0]} obtenu`);if(known.has(r[0]))throw Error('Date dupliquée');if(r[0]>nowParis())throw Error('Date future');known.set(r[0],r);prev=r[0]}return v.map(canonical);}
-function allRows(){return [...base().map(canonical),...validateAdditions(additions())];}
+function validateAdditions(rows){
+ if(!Array.isArray(rows)||rows.length>4000)throw Error('Historique additionnel invalide');
+ if(rows.some((row,i)=>!valid(row)||!availableDate(row[0])||(i>0&&row[0]<=rows[i-1][0])))throw Error('Tirage ajouté invalide ou hors séquence');
+ const combined=window.LotoHistory.merge([...base(),...rows]).filter(row=>availableDate(row[0]));
+ let last=BASE.at(-1)[0];
+ for(const row of combined.filter(row=>row[0]>last)){
+  if(row[0]!==nextDate(last))throw Error('Tirage manquant : '+nextDate(last));
+  last=row[0];
+ }
+ return rows.map(canonical);
+}
+function allRows(){return window.LotoHistory.merge([...base(),...validateAdditions(additions())]).filter(row=>availableDate(row[0]));}
 function pick(rows,windowSize,ascending){const f=Array(50).fill(0),c=Array(11).fill(0);for(const r of rows.slice(-windowSize)){for(let j=1;j<=5;j++)f[r[j]]++;c[r[6]]++}const sortF=(a,b)=>ascending?f[a]-f[b]||a-b:f[b]-f[a]||a-b;const sortC=(a,b)=>ascending?c[a]-c[b]||a-b:c[b]-c[a]||a-b;return {numbers:Array.from({length:49},(_,i)=>i+1).sort(sortF).slice(0,5).sort((a,b)=>a-b),chance:Array.from({length:10},(_,i)=>i+1).sort(sortC)[0]};}
 function uniform(){if(!crypto?.getRandomValues)throw Error('HTTPS requis pour une sélection aléatoire sécurisée');const rand=n=>{const lim=4294967296-Math.floor(4294967296%n);let x;do{x=crypto.getRandomValues(new Uint32Array(1))[0]}while(x>=lim);return x%n;};const a=Array.from({length:49},(_,i)=>i+1);for(let i=0;i<5;i++){const j=i+rand(49-i);[a[i],a[j]]=[a[j],a[i]]}return {numbers:a.slice(0,5).sort((a,b)=>a-b),chance:1+rand(10)};}
 const balls=p=>'<div class="balls">'+p.numbers.map(n=>`<span class="ball">${n}</span>`).join('')+`<span class="ball c">${p.chance}</span></div>`;
 const score=(p,r)=>({main:p.numbers.filter(n=>r.slice(1,6).includes(n)).length,chance:Number(p.chance===r[6])});
 function status(id,msg,kind=''){const el=$(id);el.className='status '+kind;el.textContent=msg;}
 function exportFile(name,v,mime='application/json'){const blob=new Blob([typeof v==='string'?v:JSON.stringify(v,null,2)],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1000);}
-function refresh(){try{const data=allRows();$('v18Base').textContent=data.length.toLocaleString('fr-FR');$('v18Latest').textContent=data.at(-1)[0].split('-').reverse().join('/');$('v18New').textContent=additions().length;$('v18Entries').textContent=entries().length;status('v18State',`Base V17 : ${base().length} · ajouts V18 : ${additions().length}. Dernier résultat ${data.at(-1)[0]}. Prochain tirage ordinaire attendu : ${nextDate(data.at(-1)[0])}.`,data.at(-1)[0]<nowParis()?'warn':'good');}catch(e){status('v18State','Historique additionnel à vérifier : '+e.message,'bad');}}
+function refresh(){try{const data=allRows();window.LotoHistory.setSharedRows(data);$('v18Base').textContent=data.length.toLocaleString('fr-FR');$('v18Latest').textContent=data.at(-1)[0].split('-').reverse().join('/');$('v18New').textContent=additions().length;$('v18Entries').textContent=entries().length;status('v18State',`Base V17 : ${base().length} · ajouts V18 : ${additions().length}. Dernier résultat ${data.at(-1)[0]}. Prochain tirage ordinaire attendu : ${nextDate(data.at(-1)[0])}.`,data.at(-1)[0]<nowParis()?'warn':'good');}catch(e){status('v18State','Historique additionnel à vérifier : '+e.message,'bad');}}
 async function importFile(file,confirm){if(!file)throw Error('Choisis un CSV');if(!confirm)throw Error('Confirme la provenance vérifiée par toi-même');if(file.size>15*1024*1024)throw Error('CSV trop volumineux');const parsed=window.Loto1611.parseFDJ(await file.text());if(parsed.errors.length)throw Error(parsed.errors.length+' ligne(s) invalide(s) ou contradictoire(s)');const old=allRows(),known=new Map(old.map(r=>[r[0],r])), incoming=[];let matched=0;
  for(const row of parsed.rows){const r=canonical(row),prior=known.get(r[0]);if(prior){if(JSON.stringify(r)!==JSON.stringify(prior))throw Error('Contradiction au '+r[0]);matched++;}else{if(r[0]<=old.at(-1)[0])throw Error('Ancien tirage manquant : '+r[0]);incoming.push(r);}}
- let prev=old.at(-1)[0];for(const r of incoming){if(r[0]!==nextDate(prev))throw Error(`Date manquante : attendu ${nextDate(prev)}, reçu ${r[0]}`);if(r[0]>nowParis())throw Error('Tirage futur interdit');prev=r[0];}
- const combined=[...additions(),...incoming];validateAdditions(combined);
+ let prev=old.at(-1)[0];for(const r of incoming){if(r[0]!==nextDate(prev))throw Error(`Date manquante : attendu ${nextDate(prev)}, reçu ${r[0]}`);if(!availableDate(r[0]))throw Error('Tirage futur ou encore en cours');prev=r[0];}
+ const combined=window.LotoHistory.merge([...additions(),...incoming]);validateAdditions(combined);
  // Storage is transactional at one key; verify committed contents.
  const previous=localStorage.getItem(DATA_KEY);try{localStorage.setItem(DATA_KEY,JSON.stringify(combined));validateAdditions(additions());if(additions().length!==combined.length)throw Error('Persistance non confirmée');}catch(e){if(previous===null)localStorage.removeItem(DATA_KEY);else localStorage.setItem(DATA_KEY,previous);throw e;}
  prepared=null;$('v18Save').disabled=true;refresh();return {matched,added:incoming.length,duplicates:parsed.duplicates.length,total:parsed.rows.length,digest:await digest(combined),filename:file.name,source:'Fichier déclaré FDJ par utilisateur ; non authentifié'};
@@ -78,6 +86,6 @@ function wire(){
  $('v18Tests').addEventListener('click',()=>run('v18Tests',async()=>{const p=await tests();status('v18TestOut',`${p.length} contrôles réussis : ${p.join(' · ')}`,'good')}));
  $('v18ResetData').addEventListener('click',()=>{if(!confirm('Retirer uniquement les tirages ajoutés dans V18 ? Exporte une copie avant. Le journal V18 et les historiques anciens restent inchangés.'))return;localStorage.removeItem(DATA_KEY);prepared=null;$('v18Save').disabled=true;refresh();status('v18ImportStatus','Données additionnelles V18 effacées localement. Les anciennes bases et journaux restent inchangés.','warn');});
 }
-window.Loto18={valid,canonical,nextDate,pick,validateAdditions,importFile,allRows,calculate,auditEntries,tests,score,structure};
+window.Loto18={valid,canonical,nextDate,pick,validateAdditions,importFile,allRows,calculate,auditEntries,tests,score,structure,refresh};
 try{wire();refresh();}catch(e){status('v18State','Erreur de démarrage : '+e.message,'bad');}
 })();

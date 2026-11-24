@@ -6,18 +6,18 @@ from pathlib import Path
 from evaluate import reject_orphan_assessments
 
 class FinalCorrectionsTests(unittest.TestCase):
-    def test_results_workflow_stages_existing_paths_only(self):
-        workflow = Path('.github/workflows/results.yml').read_text()
-        self.assertIn('git add -A -- loto_201911.csv prospective/', workflow)
+    def test_production_stages_only_automation_outputs(self):
+        workflow = Path('.github/workflows/ia-loto-autonome.yml').read_text()
+        self.assertIn('git add -- automatisation/', workflow)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             subprocess.run(['git', 'init', '-q'], cwd=root, check=True)
             (root/'loto_201911.csv').write_text('example')
-            (root/'prospective').mkdir()
-            (root/'prospective'/'bilan_30.json').write_text('{}')
-            subprocess.run(['git','add','-A','--','loto_201911.csv','prospective/'],cwd=root,check=True)
+            (root/'automatisation').mkdir()
+            (root/'automatisation'/'tableau.json').write_text('{}')
+            subprocess.run(['git','add','--','automatisation/'],cwd=root,check=True)
             tracked = subprocess.check_output(['git','diff','--cached','--name-only'],cwd=root,text=True)
-            self.assertIn('prospective/bilan_30.json',tracked)
+            self.assertEqual(tracked.splitlines(), ['automatisation/tableau.json'])
     def test_orphan_result_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); (root/'results').mkdir()

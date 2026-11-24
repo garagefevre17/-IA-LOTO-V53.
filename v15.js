@@ -3,17 +3,7 @@
 const $=id=>document.getElementById(id), M=49, Q=10, P=5/49;
 const fmt=x=>x.toLocaleString('fr-FR',{minimumFractionDigits:5,maximumFractionDigits:5});
 const safe=(x)=>Math.max(1e-9,Math.min(1-1e-9,x));
-function hist(){
-  // Utilise la base et les compléments locaux, sans toucher aux anciens journaux.
-  let rows=Array.isArray(BASE)?BASE.slice():[];
-  try{const ext=JSON.parse(localStorage.getItem('ia_loto_expert_v1_draws')||'[]');if(Array.isArray(ext))rows=rows.concat(ext)}catch{}
-  const map=new Map();
-  for(const r of rows){if(!Array.isArray(r)||r.length<7||!/^\d{4}-\d{2}-\d{2}$/.test(r[0]))continue;
-    const ns=r.slice(1,6).map(Number),c=Number(r[6]);if(new Set(ns).size!==5||ns.some(n=>!Number.isInteger(n)||n<1||n>49)||!Number.isInteger(c)||c<1||c>10)continue;
-    if(!map.has(r[0]))map.set(r[0],[r[0],...ns,c]);
-  }
-  return [...map.values()].sort((a,b)=>a[0].localeCompare(b[0]));
-}
+function hist(){return window.LotoHistory.rows()}
 function model(kind,rows){
  const cut=rows.slice(-300), cnt=new Float64Array(50),ch=new Float64Array(11);let denom=0;
  for(let j=0;j<cut.length;j++){

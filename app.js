@@ -1,18 +1,49 @@
 'use strict';
 const $=id=>document.getElementById(id),KEY='ia_loto_expert_v1_draws',LOGKEY='ia_loto_expert_v1_log',OLDLOGKEY='ia_loto_journal_v4',LASTSYNC='ia_loto_v7_last_sync';
-let draws=[],log=[],selection=null,lastTestCsv='',currentSync=0;
+let draws=[],baseRows=[],log=[],selection=null,lastTestCsv='',currentSync=0;
 const esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 function notify(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3500)}
 function store(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
 function get(k){try{return localStorage.getItem(k)}catch{return null}}
-function isoToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
-function parisHour(){return Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',hourCycle:'h23'}).format(new Date()))}
-function valid(r){if(!Array.isArray(r)||r.length<7||typeof r[0]!=='string'||!/^(19|20)\d\d-\d\d-\d\d$/.test(r[0])||new Date(r[0]+'T12:00:00Z').toISOString().slice(0,10)!==r[0])return false;let a=r.slice(1,6);return a.every(Number.isInteger)&&a.every(x=>x>=1&&x<=49)&&new Set(a).size===5&&Number.isInteger(r[6])&&r[6]>=1&&r[6]<=10}
+const parisFormatter=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'});
+function parisParts(now=new Date()){
+ return Object.fromEntries(parisFormatter.formatToParts(now).map(({type,value})=>[type,value]));
+}
+function isoToday(){const {year,month,day}=parisParts();return year+'-'+month+'-'+day}
+function parisHour(){return Number(parisParts().hour)}
+function availableDate(date){return date<isoToday()||(date===isoToday()&&parisHour()>=21)}
+function valid(r){if(!Array.isArray(r)||r.length<7||typeof r[0]!=='string'||!/^(19|20)\d\d-\d\d-\d\d$/.test(r[0])||Number.isNaN(Date.parse(r[0]+'T12:00:00Z'))||new Date(r[0]+'T12:00:00Z').toISOString().slice(0,10)!==r[0])return false;let a=r.slice(1,6);return a.every(Number.isInteger)&&a.every(x=>x>=1&&x<=49)&&new Set(a).size===5&&Number.isInteger(r[6])&&r[6]>=1&&r[6]<=10}
 function ordinaryDay(s){const day=new Date(s+'T12:00:00Z').getUTCDay();return day===1||day===3||day===6}
-function norm(rows){let map=new Map();for(const raw of rows){const r=raw.slice(0,7);if(!valid(r)||!ordinaryDay(r[0]))throw Error('Tirage invalide '+r[0]);let prev=map.get(r[0]);if(prev&&JSON.stringify(prev)!==JSON.stringify(r))throw Error('Contradiction pour '+r[0]);map.set(r[0],r)}return [...map.values()].sort((a,b)=>a[0].localeCompare(b[0]))}
+function norm(rows){let map=new Map();for(const raw of rows){const r=raw.slice(0,7);if(!valid(r)||!ordinaryDay(r[0]))throw Error('Tirage invalide '+r[0]);r.splice(1,5,...r.slice(1,6).sort((a,b)=>a-b));let prev=map.get(r[0]);if(prev&&JSON.stringify(prev)!==JSON.stringify(r))throw Error('Contradiction pour '+r[0]);map.set(r[0],r)}return [...map.values()].sort((a,b)=>a[0].localeCompare(b[0]))}
 function parseDelimited(line,sep){let out=[],v='',quote=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(quote&&line[i+1]==='"'){v+='"';i++}else quote=!quote}else if(c===sep&&!quote){out.push(v);v=''}else v+=c}out.push(v);return out}
-function parseCSV(src){const lines=src.replace(/^\ufeff/,'').trim().split(/\r?\n/).filter(Boolean);if(lines.length<2)throw Error('CSV vide');const sep=lines[0].split(';').length>lines[0].split(',').length?';':',';const heads=parseDelimited(lines.shift(),sep).map(x=>x.trim().toLowerCase());const col=[['date'],['n1','boule_1'],['n2','boule_2'],['n3','boule_3'],['n4','boule_4'],['n5','boule_5'],['b1','numero_chance','chance']].map(opts=>heads.findIndex(h=>opts.includes(h)));if(col.some(x=>x<0))throw Error('Colonnes inconnues : date,n1…n5,b1 attendues');const arr=lines.map(line=>{const v=parseDelimited(line,sep),r=[v[col[0]],...col.slice(1).map(i=>Number(v[i]))];if(!valid(r)||!ordinaryDay(r[0]))throw Error('Résultat ou date invalide : '+r[0]);return r});return norm(arr)}
-function load(){draws=norm(BASE);let local=get(KEY);if(local){try{const d=norm(JSON.parse(local));draws=norm([...draws,...d])}catch(e){console.warn('Historique conservé rejeté :',e)}}for(const key of [LOGKEY,OLDLOGKEY]){const v=get(key);if(v){try{const ls=JSON.parse(v);if(Array.isArray(ls))log=ls.filter(validLog);if(log.length)break}catch{}}}currentSync=Number(get(LASTSYNC)||0)}
+function parseCSV(src){const lines=src.replace(/^\ufeff/,'').trim().split(/\r?\n/).filter(Boolean);if(lines.length<2)throw Error('CSV vide');const sep=lines[0].split(';').length>lines[0].split(',').length?';':',';const heads=parseDelimited(lines.shift(),sep).map(x=>x.trim().toLowerCase());const col=[['date','date_de_tirage','date_tirage'],['n1','boule_1'],['n2','boule_2'],['n3','boule_3'],['n4','boule_4'],['n5','boule_5'],['b1','numero_chance','chance']].map(opts=>heads.findIndex(h=>opts.includes(h)));if(col.some(x=>x<0))throw Error('Colonnes inconnues : date,n1…n5,b1 attendues');const arr=lines.map(line=>{const v=parseDelimited(line,sep),r=[v[col[0]]?.trim().replace(/^(\d{2})[/-](\d{2})[/-](\d{4})$/,'$3-$2-$1'),...col.slice(1).map(i=>Number(v[i]))];if(!valid(r)||!ordinaryDay(r[0]))throw Error('Résultat ou date invalide : '+r[0]);return r});return norm(arr)}
+function journalRecords(key){
+ const value=JSON.parse(get(key)??'[]');
+ if(!Array.isArray(value))throw Error('Journal illisible : '+key);
+ return value;
+}
+function refreshLog(){
+ const records=new Map();
+ for(const key of [OLDLOGKEY,LOGKEY]){
+  try{
+   for(const record of journalRecords(key).filter(validLog))records.set(JSON.stringify(record),record);
+  }catch(error){console.warn(error.message);}
+ }
+ log=[...records.values()];
+}
+function appendJournal(records){
+ const existing=journalRecords(LOGKEY);
+ if(!store(LOGKEY,JSON.stringify([...existing,...records])))throw Error('Stockage local indisponible');
+ refreshLog();
+}
+function load(){
+ baseRows=norm(BASE);
+ try{baseRows=norm([...baseRows,...JSON.parse(get(KEY)??'[]')]);}
+ catch(error){console.warn('Historique conservé à vérifier',error);}
+ draws=baseRows.filter(row=>availableDate(row[0]));
+ refreshLog();
+ currentSync=Number(get(LASTSYNC)||0);
+}
 function validLog(r){return r&&typeof r.target==='string'&&/^20\d\d-\d\d-\d\d$/.test(r.target)&&Array.isArray(r.numbers)&&r.numbers.length===5&&new Set(r.numbers).size===5&&r.numbers.every(n=>Number.isInteger(n)&&n>=1&&n<=49)&&Number.isInteger(r.chance)&&r.chance>=1&&r.chance<=10&&typeof r.method==='string'}
 function freq(rows){const n=new Int32Array(50),c=new Int32Array(11);for(const r of rows){for(let i=1;i<=5;i++)n[r[i]]++;c[r[6]]++}return {n,c}}
 function ranked(v,reverse=false,max=49){return Array.from({length:max},(_,i)=>i+1).sort((a,b)=>reverse?(v[b]-v[a]||a-b):(v[a]-v[b]||a-b))}
@@ -35,7 +66,7 @@ function prng(seed){let s=seed>>>0;return()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(
 function takeRandom(limit,n,rng){const a=Array.from({length:limit},(_,i)=>i+1);for(let i=0;i<n;i++){let j=i+Math.floor(rng()*(limit-i));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)}
 function secureRand(){const max=4294967296;return function(){if(globalThis.crypto?.getRandomValues){let a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/max}return Math.random()}}
 function nextOrdinary(date){let d=new Date(date+'T12:00:00Z');do{d.setUTCDate(d.getUTCDate()+1)}while(![1,3,6].includes(d.getUTCDay()));return d.toISOString().slice(0,10)}
-function currentTarget(){let today=isoToday(),last=draws.at(-1)[0],next=nextOrdinary(last);if(next<today){return {date:next,stale:true}}return {date:next,stale:false}}
+function currentTarget(){let today=isoToday(),last=draws.at(-1)[0],next=nextOrdinary(last);if(next<today||(next===today&&parisHour()>=18)){return {date:next,stale:true}}return {date:next,stale:false}}
 function balls(obj){return '<div class="balls">'+obj.numbers.map(x=>'<span class="ball">'+x+'</span>').join('')+'<span class="ball c">'+obj.chance+'</span></div>'}
 function updateFreshness(){
  const last=draws.at(-1)?.[0];if(!last)return;
@@ -48,16 +79,73 @@ function updateFreshness(){
 function updateStats(){const last=draws.at(-1);$('count').textContent=draws.length.toLocaleString('fr-FR');$('last').textContent=last[0].split('-').reverse().join('/');let tgt=currentTarget();$('nextDraw').textContent='Prochaine date ordinaire selon l’historique : '+tgt.date.split('-').reverse().join('/')+(tgt.stale?' — historique potentiellement en retard':'');showLog();updateFreshness()}
 function switchPage(page){document.querySelectorAll('.page').forEach(el=>el.hidden=el.id!=='p-'+page);document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo(0,0)}
 function calcPredict(){try{selection=choose($('predictMethod').value,draws);const target=currentTarget();$('predictOutput').className='status good';$('predictOutput').innerHTML='<strong>'+esc(selection.method)+' — historique au '+esc(selection.cutoff)+'</strong>'+balls(selection)+'<div class="note">Prochain tirage ordinaire : '+esc(target.date)+'. Ces numéros ne sont pas statistiquement plus susceptibles de sortir.</div>';$('saveBtn').disabled=target.stale||target.date<isoToday()||(target.date===isoToday()&&parisHour()>=18);$('saveStatus').textContent=$('saveBtn').disabled?'Historique ou créneau périmé : enregistrement désactivé.':'Enregistrement local disponible. Vérifie que le tirage est encore à venir.'}catch(e){$('predictOutput').textContent='Erreur : '+e.message}}
-function register(){try{if(!selection)throw Error('Calcule d’abord la sélection');const target=currentTarget(),today=isoToday();if(target.stale||target.date<today)throw Error('Historique trop ancien : synchronise avant toute prévision');if(target.date===today&&parisHour()>=18)throw Error('Enregistrement bloqué dès 18 h (heure de Paris) par prudence');if(selection.cutoff!==draws.at(-1)[0])throw Error('Historique modifié : recalcule');const key=target.date+'|'+selection.method;if(log.some(r=>r.target+'|'+r.method===key))throw Error('Cette méthode est déjà enregistrée pour cette date');const r={id:Date.now(),created:new Date().toISOString(),target:target.date,cutoff:selection.cutoff,method:selection.method,numbers:[...selection.numbers],chance:selection.chance,provenance:'Horodatage local uniquement — non certifié'};const next=[...log,r];if(!store(LOGKEY,JSON.stringify(next)))throw Error('Stockage local indisponible : exporte un JSON');log=next;showLog();updateFreshness();$('saveStatus').className='status good';$('saveStatus').textContent='Prévision locale sauvegardée pour '+target.date+' — exporte aussi le journal JSON.'}catch(e){$('saveStatus').className='status bad';$('saveStatus').textContent=e.message}}
+function register(){try{if(!selection)throw Error('Calcule d’abord la sélection');const target=currentTarget(),today=isoToday();if(target.stale||target.date<today)throw Error('Historique trop ancien : synchronise avant toute prévision');if(target.date===today&&parisHour()>=18)throw Error('Enregistrement bloqué dès 18 h (heure de Paris) par prudence');if(selection.cutoff!==draws.at(-1)[0])throw Error('Historique modifié : recalcule');refreshLog();const key=target.date+'|'+selection.method;if(log.some(r=>r.target+'|'+r.method===key))throw Error('Cette méthode est déjà enregistrée pour cette date');const r={id:Date.now(),created:new Date().toISOString(),target:target.date,cutoff:selection.cutoff,method:selection.method,numbers:[...selection.numbers],chance:selection.chance,provenance:'Horodatage local uniquement — non certifié'};appendJournal([r]);showLog();updateFreshness();$('saveStatus').className='status good';$('saveStatus').textContent='Prévision locale sauvegardée pour '+target.date+' — exporte aussi le journal JSON.'}catch(e){$('saveStatus').className='status bad';$('saveStatus').textContent=e.message}}
 function exportFile(name,content,type='text/plain'){let blob=new Blob([content],{type}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
 function exportJournal(){exportFile('IA_LOTO_V16_journal.json',JSON.stringify({format:'ia-loto-journal-v1',exported_at_local:new Date().toISOString(),records:log},null,2),'application/json')}
 function csvValue(v){let s=String(v??'');return /[,"\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
 function exportCsvLog(){let hdr=['date','created','method','cutoff','n1','n2','n3','n4','n5','chance'],rows=log.map(r=>[r.target,r.created,r.method,r.cutoff,...r.numbers,r.chance]);exportFile('IA_LOTO_V16_journal.csv',[hdr,...rows].map(x=>x.map(csvValue).join(',')).join('\n'),'text/csv')}
 function logOutcome(r){const actual=draws.find(x=>x[0]===r.target);if(!actual)return 'Résultat non disponible, en attente';if(r.cutoff && r.cutoff>=r.target)return 'NON VALIDE : données non antérieures';if(r.created && r.created.slice(0,10)>r.target)return 'NON VALIDÉ : sauvegarde postérieure au jour du tirage';return intersections(r.numbers,actual.slice(1,6))+' bon(s) numéro(s) ; Chance '+(r.chance===actual[6]?'trouvée':'non trouvée')+' — horodatage local non certifié'}
 function showLog(){if(!log.length){$('logOutput').textContent='Aucun enregistrement local.';return}let sorted=[...log].sort((a,b)=>String(b.created).localeCompare(String(a.created)));$('logOutput').innerHTML='<strong>'+log.length+' sélection(s) sauvegardée(s) localement</strong>'+sorted.slice(0,20).map(r=>'<div class="method"><strong>'+esc(r.target)+' · '+esc(r.method)+'</strong>'+esc(r.numbers.join(' – '))+' | Chance '+r.chance+'<div class="note">Créé : '+esc(r.created||'date non fournie')+' ; données au '+esc(r.cutoff||'?')+' ; '+esc(logOutcome(r))+'</div></div>').join('')+(log.length>20?'<small>20 derniers affichés ; export pour les autres.</small>':'')}
-async function restoreJournal(e){let file=e.target.files?.[0];if(!file)return;try{let inp=JSON.parse(await file.text()),records=Array.isArray(inp)?inp:inp.records;if(!Array.isArray(records)||!records.every(validLog))throw Error('Format ou enregistrements invalides');let byKey=new Map(log.map(r=>[r.target+'|'+r.method+'|'+(r.cutoff||''),r]));let added=0;for(const r of records){let k=r.target+'|'+r.method+'|'+(r.cutoff||'');if(byKey.has(k)){const a=byKey.get(k);if(JSON.stringify(a.numbers)!==JSON.stringify(r.numbers)||a.chance!==r.chance)throw Error('Conflit : '+k);continue}byKey.set(k,r);added++}const result=[...byKey.values()];if(!store(LOGKEY,JSON.stringify(result)))throw Error('Stockage local indisponible');log=result;showLog();updateFreshness();$('importStatus').className='status good';$('importStatus').textContent=added+' prévision(s) restaurée(s), sans écraser les anciennes.'}catch(err){$('importStatus').className='status bad';$('importStatus').textContent='Restauration refusée : '+err.message}finally{e.target.value=''}}
-function mergeRemote(fresh,label){const map=new Map(draws.map(r=>[r[0],r])),overlap=0;let same=0,added=0;for(const r of fresh){let existing=map.get(r[0]);if(existing){if(JSON.stringify(existing)!==JSON.stringify(r))throw Error('Contradiction '+r[0]+' : résultat non ajouté');same++}else if(r[0]>draws.at(-1)[0]){map.set(r[0],r);added++}}if(same<Math.min(30,Math.floor(fresh.length*.5)))throw Error('Recoupement insuffisant pour confirmer la source');let merged=norm([...map.values()]);draws=merged;store(KEY,JSON.stringify(draws));updateStats();return {same,added,source:label}}
-async function sync(manual=false){if(!manual&&Date.now()-currentSync<3600000){$('syncStatus').textContent='Synchronisation automatique effectuée récemment. Le bouton permet une vérification manuelle immédiate.';return}const btn=$('syncBtn');btn.disabled=true;$('syncStatus').textContent=(manual?'Vérification manuelle forcée':'Vérification automatique')+' : téléchargement de Lottochaos (non FDJ)…';let ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);try{let r=await fetch('https://lottochaos.com/data/loto.csv',{signal:ctrl.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const fresh=parseCSV(await r.text());if(fresh.length<300)throw Error('Archive distante insuffisante');let res=mergeRemote(fresh,'Lottochaos');currentSync=Date.now();store(LASTSYNC,String(currentSync));$('syncStatus').className='status good';$('syncStatus').textContent=res.same+' tirages communs comparés, '+res.added+' nouveau(x) ajouté(s). Source : Lottochaos, non officielle. Dernier résultat local : '+draws.at(-1)[0]+'.'}catch(e){$('syncStatus').className='status bad';$('syncStatus').textContent='Synchronisation impossible : '+e.message+'. Les données locales restent disponibles. Vérification FDJ recommandée.'}finally{clearTimeout(timer);btn.disabled=false}}
+async function restoreJournal(e){let file=e.target.files?.[0];if(!file)return;try{let inp=JSON.parse(await file.text()),records=Array.isArray(inp)?inp:inp.records;if(!Array.isArray(records)||!records.every(validLog))throw Error('Format ou enregistrements invalides');refreshLog();const additions=[];for(const r of records){
+ const matches=[...log,...additions].filter(a=>a.target===r.target&&a.method===r.method&&(a.cutoff||'')===(r.cutoff||''));
+ if(matches.some(a=>a.chance!==r.chance||JSON.stringify([...a.numbers].sort())!==JSON.stringify([...r.numbers].sort())))throw Error('Conflit : '+r.target+' '+r.method);
+ if(!matches.length)additions.push(r);
+}if(additions.length)appendJournal(additions);const added=additions.length;showLog();updateFreshness();$('importStatus').className='status good';$('importStatus').textContent=added+' prévision(s) restaurée(s), sans écraser les anciennes.'}catch(err){$('importStatus').className='status bad';$('importStatus').textContent='Restauration refusée : '+err.message}finally{e.target.value=''}}
+function mergeRemote(fresh,label){
+ const kept=JSON.parse(get(KEY)??'[]');
+ const known=norm([...BASE,...kept,...draws]);
+ const dates=new Set(known.map(row=>row[0]));
+ const incoming=norm(fresh);
+ if(incoming.some(row=>!availableDate(row[0])))throw Error('Résultat futur ou annoncé avant 21 h (Paris)');
+ const combined=norm([...known,...incoming]);
+ let last=BASE.at(-1)[0];
+ for(const row of combined.filter(row=>row[0]>last)){
+  if(row[0]!==nextOrdinary(last))throw Error('Tirage manquant : '+nextOrdinary(last));
+  last=row[0];
+ }
+ const additions=incoming.filter(row=>!dates.has(row[0]));
+ const merged=norm([...BASE,...kept,...incoming]);
+ if(!store(KEY,JSON.stringify(merged)))throw Error('Stockage local indisponible');
+ baseRows=merged;
+ if(window.Loto18)window.Loto18.refresh();
+ else setSharedRows(merged.filter(row=>availableDate(row[0])));
+ return {same:incoming.length-additions.length,added:additions.length,source:label};
+}
+function setSharedRows(rows){
+ draws=rows;
+ updateStats();
+}
+window.LotoHistory={rows:()=>draws.slice(),baseRows:()=>baseRows.slice(),merge:norm,
+ setSharedRows,nextDate:nextOrdinary,availableDate,today:isoToday,hour:parisHour};
+async function sync(manual=false){
+ const btn=$('syncBtn');
+ if(btn.disabled||(!manual&&Date.now()-currentSync<3600000))return;
+ btn.disabled=true;
+ const status=$('syncStatus');
+ status.textContent='Lecture de l’historique LOTO produit par le collecteur FDJ…';
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);
+ try{
+  const response=await fetch('./automatisation/donnees/loto.json',{signal:ctrl.signal,cache:'no-store'});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();
+  if(!Array.isArray(data.draws)||!data.draws.length)throw Error('Historique absent');
+  const rows=data.draws.map(({date,nums,extras})=>{
+   if(!Array.isArray(nums)||nums.length!==5||!Array.isArray(extras)||extras.length!==1)throw Error('Tirage LOTO invalide');
+   return [date,...nums,...extras];
+  });
+  const {same,added}=mergeRemote(rows,'archives FDJ');
+  currentSync=Date.now();
+  store(LASTSYNC,String(currentSync));
+  status.className='status good';
+  status.textContent=same+' tirage(s) commun(s), '+added+' ajouté(s). Dernier résultat local : '+draws.at(-1)[0]+'.';
+ }catch(error){
+  status.className='status warn';
+  status.textContent='Historique FDJ indisponible : '+error.message+'. Historique local disponible.';
+ }finally{
+  clearTimeout(timer);
+  btn.disabled=false;
+ }
+}
 // Numerical recipes regularized lower incomplete gamma for chi-square tail probability.
 function lnGamma(z){const p=[.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];if(z<.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-lnGamma(1-z);z-=1;let x=p[0];for(let i=1;i<p.length;i++)x+=p[i]/(z+i);let t=z+7.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x)}
 function gammaQ(a,x){if(x<=0)return 1;const gl=lnGamma(a),eps=1e-12;if(x<a+1){let term=1/a,sum=term,ap=a;for(let k=1;k<1000;k++){ap++;term*=x/ap;sum+=term;if(Math.abs(term)<Math.abs(sum)*eps)break}return Math.min(1,Math.max(0,1-sum*Math.exp(-x+a*Math.log(x)-gl)))}let b=x+1-a,c=1e300,d=1/b,h=d;for(let k=1;k<1000;k++){let an=-k*(k-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;let del=d*c;h*=del;if(Math.abs(del-1)<eps)break}return Math.min(1,Math.max(0,h*Math.exp(-x+a*Math.log(x)-gl)))}

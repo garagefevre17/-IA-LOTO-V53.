@@ -4,9 +4,9 @@ Le moteur produit des sélections statistiques ; il ne garantit aucun gain. Les 
 
 Ce projet utilise des archives FDJ (réseau nécessaire), OpenSSL et Python 3.11. Les collectes manquantes et les preuves non vérifiées bloquent la certification. Les archives de plusieurs périodes sont fusionnées uniquement si elles sont compatibles ; l'historique doit être complet.
 
-Tests : `python -m unittest discover -s tests -p 'test*.py' -v`
+Tests : `python -m unittest discover -s . -p 'test_*.py' -v`
 
-Exécution : `python automation/pipeline.py` puis `python automation/timestamp.py` ; en production, préférer le workflow `.github/workflows/ia-loto-autonome.yml` et contrôler ses logs. Le résultat produit est consultable via `automatisation/index.html` et les JSON sous `automatisation/`.
+Exécution : `python pipeline.py` puis `python timestamp.py` ; en production, préférer le workflow `.github/workflows/ia-loto-autonome.yml` et contrôler ses logs. Le résultat produit est consultable depuis `index.html` et dans les JSON sous `automatisation/`.
 
 **Ne fusionne jamais un ancien résultat non certifié avec le bilan prospectif.** Voir `RAPPORT_AUDIT_V53_4.md` et `INSTALLATION_IPHONE.md`.
 

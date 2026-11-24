@@ -4,20 +4,18 @@
 const $=id=>document.getElementById(id), KEY='ia_loto_v17_journal_v1', LOGU=Math.log(19068840);
 let admitted=[], sourceInfo=null, prepared=null, latestReport=null, lastBack=null;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const dateParis=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-const hourParis=()=>Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+const {today:dateParis,hour:hourParis,nextDate,availableDate}=window.LotoHistory;
 const base=()=>window.Loto16.draws();
 const hashString=async text=>{if(!crypto?.subtle)throw Error('HTTPS requis pour SHA-256');const a=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)));return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')};
 const digest=rows=>hashString(JSON.stringify(rows));
-function nextDate(date){const d=new Date(date+'T12:00:00Z');if(Number.isNaN(+d))throw Error('Date invalide');do{d.setUTCDate(d.getUTCDate()+1)}while(![1,3,6].includes(d.getUTCDay()));return d.toISOString().slice(0,10)}
-function arr(){return [...base(),...admitted]}
+function arr(){return window.LotoHistory.merge([...base(),...admitted]);}
 function checkRow(r){return Array.isArray(r)&&r.length===7&&/^\d{4}-\d\d-\d\d$/.test(r[0])&&r.slice(1,6).every(x=>Number.isInteger(x)&&x>=1&&x<=49)&&new Set(r.slice(1,6)).size===5&&Number.isInteger(r[6])&&r[6]>=1&&r[6]<=10}
 function same(a,b){return a.length===b.length&&a.every((x,i)=>x===b[i])}
 function validateImported(parsed, existing){
  if(parsed.errors.length)throw Error(`${parsed.errors.length} ligne(s) invalides ou contradictoires : import refusé.`);
  const known=new Map(existing.map(r=>[r[0],r])), newRows=[];let common=0;
  for(const raw of parsed.rows){const r=[raw[0],...raw.slice(1,6).sort((a,b)=>a-b),raw[6]];
-  if(!checkRow(r))throw Error('Combinaison invalide à '+r[0]);
+  if(!checkRow(r)||!availableDate(r[0]))throw Error('Combinaison invalide à '+r[0]);
   if(known.has(r[0])){if(!same(known.get(r[0]),r))throw Error('Contradiction avec la base intégrée au '+r[0]);common++}
   else {if(r[0]<=existing.at(-1)[0])throw Error(`Résultat ancien absent de la base au ${r[0]} : contrôle manuel requis`);newRows.push(r)}
  }
@@ -37,7 +35,7 @@ function seededPick(seed){let h=2166136261>>>0;for(const ch of String(seed)){h=M
 }
 function securePick(){if(!crypto?.getRandomValues)throw Error('Générateur sécurisé indisponible');const draw=m=>{const upper=4294967296,cut=upper-upper%m;let n;do{n=crypto.getRandomValues(new Uint32Array(1))[0]}while(n>=cut);return n%m};const a=Array.from({length:49},(_,i)=>i+1);for(let i=0;i<5;i++){const j=i+draw(49-i);[a[i],a[j]]=[a[j],a[i]]}return {numbers:a.slice(0,5).sort((a,b)=>a-b),chance:1+draw(10)};}
 function score(p,r){return {main:p.numbers.filter(n=>r.slice(1,6).includes(n)).length,chance:Number(p.chance===r[6])}}
-function records(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch{return []}}
+function records(){const v=JSON.parse(localStorage.getItem(KEY)??'[]');if(!Array.isArray(v))throw Error('Journal V17 illisible');return v;}
 function validEntry(e){return e&&e.protocol==='V17-prospectif-1'&&/^\d{4}-\d\d-\d\d$/.test(e.target||'')&&e.cutoff<e.target&&Array.isArray(e.methods)&&e.methods.length===3&&new Set(e.methods.map(x=>x.key)).size===3&&['cold','adaptive','uniform'].every(k=>e.methods.some(x=>x.key===k))&&e.methods.every(x=>checkRow([e.target,...x.numbers,x.chance]))&&typeof e.recordHash==='string'&&typeof e.cutoffHash==='string'}
 async function audited(){const rows=records(),seen=new Set(),out=[];for(const e of rows){let issues=[];if(!validEntry(e)){issues.push('Structure invalide')}else{const {recordHash,...without}=e;const computed=await hashString(JSON.stringify(without));if(computed!==recordHash)issues.push('Empreinte différente');if(seen.has(e.target))issues.push('Date dupliquée');seen.add(e.target)}out.push({entry:e,ok:issues.length===0,issues})}return out}
 const styleBalls=p=>'<div class="balls">'+p.numbers.map(n=>`<span class="ball">${n}</span>`).join('')+`<span class="ball c">${p.chance}</span></div>`;
