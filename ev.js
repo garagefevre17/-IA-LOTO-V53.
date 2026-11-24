@@ -12,6 +12,36 @@ h+='<p>Pour couvrir un prix de <b>'+fmt(cost)+' €</b>, il faudrait des gains o
 if(base===null){h+='<p><b>Rentabilité : indéterminable.</b> Les gains ordinaires attendus sont inconnus. Ne remplace pas cette inconnue par le taux de retour moyen : le jackpot et les redistributions y sont déjà inclus à l’échelle du jeu.</p>';}else{h+='<p><b>Résultat net modélisé : '+fmt(x.net,4)+' € / grille</b>. Ce résultat est entièrement conditionné à ton hypothèse de gains ordinaires, qui n’est pas vérifiée par l’application.</p>';}
 const low=calc(J,Math.round(N*.5),cost,null), high=calc(J,Math.round(N*1.5),cost,null);h+='<p class="muted">Sensibilité à la participation (redistribution seule) : '+fmt(low.add,4)+' € si moitié moins de grilles ; '+fmt(high.add,4)+' € si 50 % de grilles en plus.</p><small>Hypothèses : choix des autres joueurs uniformes, indépendants, nombre de combinaisons connu, jackpot fixe, traitement théorique des parts. Les choix réels ne sont pas uniformes, les mises peuvent se concentrer sur certains numéros, les règles changent et les volumes sont inconnus. Des écarts de partage peuvent modifier considérablement le résultat. Les gains ordinaires, les codes et les frais sont exclus sauf saisie manuelle.</small>';
 out.className='status good';out.innerHTML=h;}
+function compareJackpot(event){
+ event.preventDefault();
+ const jackpot=$('scenarioJackpot').valueAsNumber;
+ const cost=$('scenarioCost').valueAsNumber;
+ const secondaryInput=$('scenarioSecondary');
+ const omitted=secondaryInput.value==='';
+ const secondary=omitted?0:secondaryInput.valueAsNumber;
+ const combinations=$('scenarioGame').value==='loto'?total:139838160;
+ const output=$('scenarioOutput');
+ if(![jackpot,cost,secondary].every(Number.isFinite)||jackpot<=0||cost<=0||secondary<0||
+    !Number.isFinite(3*combinations*Math.abs(cost-secondary))){
+  output.textContent='Vérifie les montants saisis.';
+  return;
+ }
+ const euros=new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'});
+ const intro=document.createElement('p');
+ intro.textContent=omitted?'Hypothèse : 0 € de gains secondaires moyens par grille.':
+  'Gains secondaires moyens supposés : '+euros.format(secondary)+' par grille.';
+ const scenarios=document.createElement('ul');
+ for(const winners of [1,2,3]){
+  const net=jackpot/combinations/winners+secondary-cost;
+  const threshold=Math.max(0,combinations*(cost-secondary)*winners);
+  const item=document.createElement('li');
+  item.textContent=winners+(winners===1?' gagnant':' gagnants')+' au total · seuil '+euros.format(threshold)+
+   ' · gain net moyen '+euros.format(net)+' par grille.';
+  scenarios.append(item);
+ }
+ output.replaceChildren(intro,scenarios);
+}
+$('jackpotScenarios')?.addEventListener('submit',compareJackpot);
 function selfcheck(){let sum=ranks.reduce((a,r)=>a+r.share,0);if(Math.abs(sum-1)>1e-12||Math.abs(total-19068840)>1e-6||Math.abs(ranks.reduce((a,r)=>a+pRank(r),p1)-(.1669))>.01)throw Error('Erreur de contrôle des probabilités');return true;}
 try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').textContent='Module indisponible : '+e.message;console.error(e)}
 })();
