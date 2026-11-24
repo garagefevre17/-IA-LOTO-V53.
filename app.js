@@ -198,21 +198,32 @@ function randomGrid(game){
   return;
  }
  const buffer=new Uint32Array(1);
- function sample(limit,count){
-  const pool=Array.from({length:limit},(_,i)=>i+1);
-  const result=[];
-  for(let i=0;i<count;i++){
-   const bound=pool.length;
-   const accepted=2**32-(2**32%bound);
-   do{crypto.getRandomValues(buffer);}while(buffer[0]>=accepted);
-   result.push(pool.splice(buffer[0]%bound,1)[0]);
-  }
-  return result.sort((a,b)=>a-b);
+ function randomIndex(bound){
+  const accepted=2**32-(2**32%bound);
+  do{crypto.getRandomValues(buffer);}while(buffer[0]>=accepted);
+  return buffer[0]%bound;
  }
- const lines=new Set();
+ function take(pool,count){
+  const result=[];
+  for(let i=0;i<count;i++)result.push(pool.splice(randomIndex(pool.length),1)[0]);
+  return result;
+ }
+ function sample(limit,count){
+  return take(Array.from({length:limit},(_,i)=>i+1),count).sort((a,b)=>a-b);
+ }
+ const spread=$('quickCoverExtras').checked;
+ const possibleExtras=[];
+ for(let first=1;first<=extraMax;first++){
+  if(loto)possibleExtras.push([first]);
+  else for(let second=first+1;second<=extraMax;second++)possibleExtras.push([first,second]);
+ }
+ const planned=spread?take(possibleExtras,Math.min(count,possibleExtras.length)):[];
+ const lines=new Set(), covered=new Set();
  while(lines.size<count){
-  const numbers=sample(max,5), extras=sample(extraMax,extraCount);
-  lines.add(numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+extras.join(' – '));
+  const numbers=sample(max,5), extras=planned[lines.size]??sample(extraMax,extraCount);
+  const key=extras.join(' – ');
+  lines.add(numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+key);
+  covered.add(key);
  }
  const label=loto?'LOTO':'EuroMillions';
  const total=loto?19068840:139838160;
@@ -228,7 +239,11 @@ function randomGrid(game){
  }
  const odds=document.createElement('p');
  odds.textContent='Jackpot sur un même tirage : '+count+' / '+format.format(total)+' (environ '+percent.format(count/total)+').';
- output.replaceChildren(title,list,odds);
+ const coverage=document.createElement('p');
+ const extraTotal=loto?10:66;
+ const outcome=loto?'Toucher le numéro Chance':'Trouver les deux étoiles sur une grille';
+ coverage.textContent=outcome+' : '+covered.size+' / '+extraTotal+' ('+percent.format(covered.size/extraTotal)+'). Cette couverture seule ne garantit pas un bénéfice.';
+ output.replaceChildren(title,list,coverage,odds);
 }
 function wire(){
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
