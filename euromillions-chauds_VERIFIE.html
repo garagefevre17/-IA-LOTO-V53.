@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EuroMillions — Chauds 1 an</title><style>:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif}*{box-sizing:border-box}body{background:#0c1b2e;color:#f3f8ff;max-width:720px;margin:auto;padding:18px;line-height:1.5}h1{font-size:1.5rem}.panel{background:#192f49;border:1px solid #53718c;padding:17px;border-radius:14px;margin:14px 0}input,button{width:100%;padding:13px;margin:8px 0;font:inherit;border-radius:9px}input{background:#0b2238;color:white;border:1px solid #7195ad}button{border:0;background:#237cba;color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.45}.muted{color:#c0d3e2}.balls{display:flex;flex-wrap:wrap;gap:7px}.ball{border-radius:100%;height:44px;width:44px;background:#2165c4;display:grid;place-items:center;font-weight:800}.star{background:#f1bb35;color:#272019}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#a2ddff}</style></head><body><a href="./index.html">← Accueil IA LOTO V53</a><h1>EuroMillions — 3 grilles chaudes sur 1 an</h1><p class="muted">Calcul exact sur les 365 jours précédant le tirage cible : 15 numéros et 6 étoiles les plus fréquents, répartis sans doublons dans 3 grilles. Égalités départagées par le plus petit numéro.</p><div class="panel"><h2>1. Importer l'historique</h2><p>Historique GitHub chargé automatiquement si disponible. Tu peux aussi compléter la base avec un CSV contenant les colonnes <code>date;n1;n2;n3;n4;n5;e1;e2</code> et dates AAAA-MM-JJ ou JJ/MM/AAAA. Tous les mardis et vendredis de la période sont requis.</p><input id="csv" type="file" accept=".csv,text/csv"><p id="importState" role="status">Aucun historique chargé.</p></div><div class="panel"><h2>2. Calculer</h2><label for="target">Date du tirage</label><input type="date" id="target"><button id="calculate">Calculer les 3 grilles et les étoiles</button><p id="status" role="status"></p><div id="results"></div><button id="export" disabled>Exporter le rapport JSON et les fréquences</button></div><p class="muted">Le module vérifie la cohérence du calendrier, mais ne certifie pas que le fichier importé provient de la FDJ. Les fréquences passées ne confèrent aucun avantage prédictif démontré.</p><script>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EuroMillions — Chauds 1 an</title><style>:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif}*{box-sizing:border-box}body{background:#0c1b2e;color:#f3f8ff;max-width:720px;margin:auto;padding:18px;line-height:1.5}h1{font-size:1.5rem}.panel{background:#192f49;border:1px solid #53718c;padding:17px;border-radius:14px;margin:14px 0}input,button{width:100%;padding:13px;margin:8px 0;font:inherit;font-size:16px;min-height:44px;border-radius:9px}input{background:#0b2238;color:white;border:1px solid #7195ad}button{border:0;background:#237cba;color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.45}.muted{color:#c0d3e2}.balls{display:flex;flex-wrap:wrap;gap:7px}.ball{border-radius:100%;height:44px;width:44px;background:#2165c4;display:grid;place-items:center;font-weight:800}.star{background:#f1bb35;color:#272019}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#a2ddff}</style></head><body><a href="./index.html">← Accueil IA LOTO V53</a><h1>EuroMillions — 3 grilles chaudes sur 1 an</h1><p class="muted">Calcul exact sur les 365 jours précédant le tirage cible : 15 numéros et 6 étoiles les plus fréquents, répartis sans doublons dans 3 grilles. Égalités départagées par le plus petit numéro.</p><div class="panel"><h2>1. Importer l'historique</h2><p>Historique GitHub chargé automatiquement si disponible. Tu peux aussi compléter la base avec un CSV contenant les colonnes <code>date;n1;n2;n3;n4;n5;e1;e2</code> et dates AAAA-MM-JJ ou JJ/MM/AAAA. Tous les mardis et vendredis de la période sont requis.</p><input id="csv" type="file" accept=".csv,text/csv"><button id="emRefresh" type="button">Actualiser les tirages</button><p id="importState" role="status">Aucun historique chargé.</p></div><div class="panel"><h2>2. Calculer</h2><label for="target">Date du tirage</label><input type="date" id="target"><button id="calculate">Calculer les 3 grilles et les étoiles</button><p id="status" role="status"></p><div id="results"></div><button id="export" disabled>Exporter le rapport JSON et les fréquences</button></div><p class="muted">Le module vérifie la cohérence du calendrier, mais ne certifie pas que le fichier importé provient de la FDJ. Les fréquences passées ne confèrent aucun avantage prédictif démontré.</p><script>
 'use strict';(()=>{const $=id=>document.getElementById(id);let rows=[],file='',digest=null,report=null,importSerial=0;
 function addDays(s,n){let d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function dow(s){return new Date(s+'T12:00:00Z').getUTCDay()}
@@ -27,15 +27,35 @@ function mergeHistory(incoming,label,hash=null){
  else if(!rows.length){file=label;digest=hash;}
  rows=[...known.values()].sort((a,b)=>a.date.localeCompare(b.date));
 }
-fetch('./automatisation/donnees/euromillions.json',{cache:'no-store'}).then(response=>{
- if(!response.ok)throw Error('HTTP '+response.status);
- return response.json();
-}).then(history=>{
- if(importSerial)return;
- if(!Array.isArray(history.draws)||!history.draws.length)throw Error('Historique vide');
- const csv='date;n1;n2;n3;n4;n5;e1;e2\n'+history.draws.map(({date,nums,extras})=>[date,...nums,...extras].join(';')).join('\n');
- mergeHistory(parse(csv),'archives FDJ via GitHub');
- $('importState').textContent=rows.length+' tirages GitHub, du '+rows[0].date+' au '+rows.at(-1).date+'.';
-}).catch(()=>{if(!importSerial)$('importState').textContent='Historique GitHub indisponible. Tu peux importer un CSV.';});
+let lastSync=0;
+async function refreshHistory(force=false){
+ const button=$('emRefresh');
+ if(button.disabled||(!force&&Date.now()-lastSync<3600000))return;
+ button.disabled=true;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),18000);
+ try{
+  const response=await fetch('./automatisation/donnees/euromillions.json',{cache:'no-store',signal:controller.signal});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const history=await response.json();
+  if(!Array.isArray(history.draws)||!history.draws.length)throw Error('Historique vide');
+  const csv='date;n1;n2;n3;n4;n5;e1;e2\n'+history.draws.map(({date,nums,extras})=>[date,...nums,...extras].join(';')).join('\n');
+  const count=rows.length;
+  mergeHistory(parse(csv),'archives FDJ via GitHub');
+  if(rows.length!==count)clear();
+  lastSync=Date.now();
+  $('importState').textContent=rows.length+' tirages disponibles, du '+rows[0].date+' au '+rows.at(-1).date+'.';
+ }catch(error){
+  $('importState').textContent='Actualisation impossible : '+error.message+'. '+(rows.length?'Historique précédent disponible.':'Tu peux importer un CSV.');
+ }finally{
+  clearTimeout(timer);
+  button.disabled=false;
+ }
+}
+$('emRefresh').onclick=()=>refreshHistory(true);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHistory();});
+window.addEventListener('online',()=>{if(!document.hidden)refreshHistory(true);});
+window.setInterval(()=>{if(!document.hidden)refreshHistory();},300000);
+refreshHistory();
 })();
 </script></body></html>
