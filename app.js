@@ -188,6 +188,11 @@ function randomGrid(game){
  const loto=game==='loto';
  const max=loto?49:50, extraMax=loto?10:12, extraCount=loto?1:2;
  const output=$('quickGridOutput');
+ const count=Number($('quickGridCount').value);
+ if(!Number.isInteger(count)||count<1||count>20){
+  output.textContent='Choisis entre 1 et 20 grilles.';
+  return;
+ }
  if(!globalThis.crypto?.getRandomValues){
   output.textContent='Le générateur sécurisé est indisponible dans ce navigateur.';
   return;
@@ -204,9 +209,26 @@ function randomGrid(game){
   }
   return result.sort((a,b)=>a-b);
  }
- const numbers=sample(max,5), extras=sample(extraMax,extraCount);
- const label=loto?'LOTO':'EuroMillions', extraLabel=loto?'Chance':'Étoiles';
- output.textContent=label+' · '+numbers.join(' – ')+' · '+extraLabel+' : '+extras.join(' – ');
+ const lines=new Set();
+ while(lines.size<count){
+  const numbers=sample(max,5), extras=sample(extraMax,extraCount);
+  lines.add(numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+extras.join(' – '));
+ }
+ const label=loto?'LOTO':'EuroMillions';
+ const total=loto?19068840:139838160;
+ const format=new Intl.NumberFormat('fr-FR');
+ const percent=new Intl.NumberFormat('fr-FR',{style:'percent',maximumSignificantDigits:4});
+ const title=document.createElement('strong');
+ title.textContent=label+' · '+count+(count===1?' grille':' grilles distinctes');
+ const list=document.createElement('ol');
+ for(const line of lines){
+  const item=document.createElement('li');
+  item.textContent=line;
+  list.append(item);
+ }
+ const odds=document.createElement('p');
+ odds.textContent='Jackpot sur un même tirage : '+count+' / '+format.format(total)+' (environ '+percent.format(count/total)+').';
+ output.replaceChildren(title,list,odds);
 }
 function wire(){
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
