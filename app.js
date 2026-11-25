@@ -72,7 +72,7 @@ function updateFreshness(){
  const last=draws.at(-1)?.[0];if(!last)return;
  const target=currentTarget(),today=isoToday(),age=Math.round((Date.parse(today+'T12:00:00Z')-Date.parse(last+'T12:00:00Z'))/86400000);
  const msg=$('freshness');msg.className='status '+(target.stale?'warn':'good');
- msg.textContent=target.stale?'Historique en retard ('+age+' jours depuis le '+last+'). Ne pas enregistrer une nouvelle prévision avant mise à jour et vérification FDJ.':'Historique au '+last+'. Source secondaire non officielle : toute nouvelle ligne doit être validée avec la FDJ.';
+ msg.textContent=target.stale?'Historique en retard ('+age+' jours depuis le '+last+'). Ne pas enregistrer une nouvelle prévision avant mise à jour et vérification FDJ.':'Historique utilisé pour les calculs au '+last+'. Les résultats des archives FDJ sont affichés séparément ci-dessous.';
  const count=log.length,known=log.filter(r=>draws.some(d=>d[0]===r.target)).length;
  $('prospectiveSummary').textContent='Journal : '+count+' prévision(s), '+known+' résultat(s) connu(s), '+(count-known)+' en attente. Heures locales non certifiées.';
 }
