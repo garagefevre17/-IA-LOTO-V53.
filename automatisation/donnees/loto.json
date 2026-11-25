@@ -1,4 +1,4 @@
-{"retrieved_at":"2026-11-24T21:45:50Z","source":[{"parsed_rows":1104,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afp6","zip_sha256":"4e0732318cc60f5a39e6c7d3985023bcfaff37e4a7b98661e5b5485aa5250e89"},{"parsed_rows":107,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afo6","zip_sha256":"5daee376ffe313ed7e970a4783884fec6efb26d57a86858a389bba710fc8f452"},{"parsed_rows":310,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afn6","zip_sha256":"f357ae099d0aa9be33e88d2ccf3a010d8d1d0e73ea2c1258294f553ca1380554"},{"parsed_rows":1317,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afm6","zip_sha256":"367c4b3d143f5c24fed3a05634464ca4a1043a26d6b0737d8208ba0a9cb8424e"}],
+{"retrieved_at":"2026-11-25T19:58:10Z","source":[{"parsed_rows":1104,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afp6","zip_sha256":"4e0732318cc60f5a39e6c7d3985023bcfaff37e4a7b98661e5b5485aa5250e89"},{"parsed_rows":107,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afo6","zip_sha256":"5daee376ffe313ed7e970a4783884fec6efb26d57a86858a389bba710fc8f452"},{"parsed_rows":310,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afn6","zip_sha256":"f357ae099d0aa9be33e88d2ccf3a010d8d1d0e73ea2c1258294f553ca1380554"},{"parsed_rows":1317,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afm6","zip_sha256":"367c4b3d143f5c24fed3a05634464ca4a1043a26d6b0737d8208ba0a9cb8424e"},{"parsed_rows":1105,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afp6","zip_sha256":"c9dadad81558f14dd7e6ca3725ba35504b4a520d461a65408330085300421d88"}],
 "draws":[
 {"date":"2008-10-06","extras":[9],"nums":[19,24,27,33,41]},
 {"date":"2008-10-08","extras":[1],"nums":[22,24,32,41,48]},
@@ -2837,5 +2837,6 @@
 {"date":"2026-11-16","extras":[7],"nums":[1,6,9,32,45]},
 {"date":"2026-11-18","extras":[7],"nums":[12,17,38,41,45]},
 {"date":"2026-11-21","extras":[9],"nums":[7,12,25,40,46]},
-{"date":"2026-11-23","extras":[1],"nums":[2,10,24,30,45]}
+{"date":"2026-11-23","extras":[1],"nums":[2,10,24,30,45]},
+{"date":"2026-11-25","extras":[8],"nums":[9,15,20,35,42]}
 ]}
