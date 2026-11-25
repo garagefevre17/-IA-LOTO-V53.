@@ -26,6 +26,7 @@ async function status(files) {
   assert.match(await status({}), /LOTO.*indisponible.*EuroMillions.*indisponible/);
   const files = {
     './automatisation/donnees/loto.json': {draws:[{date:'2026-11-23',nums:[2,10,24,30,45],extras:[1]}]},
+    './automatisation/donnees/loto-second-tirage.json': {draws:[{date:'2026-11-25',nums:[9,16,21,29,37]}]},
     './automatisation/donnees/euromillions.json': {draws:[{date:'2026-11-24',nums:[3,5,37,44,49],extras:[5,6]}]},
     './automatisation/tableau.json': {games:{
       loto:{target:'2026-11-25',evaluated:[
@@ -42,5 +43,8 @@ async function status(files) {
   assert.match(partial, /LOTO.*23\/11\/2026.*automatisation indisponible.*EuroMillions.*24\/11\/2026.*automatisation indisponible/);
   const invalid = await status({...files, './automatisation/donnees/euromillions.json': {draws:[{date:'2026-11-24',nums:[3,5,5,44,49],extras:[5,6]}]}});
   assert.match(invalid, /EuroMillions · historique GitHub indisponible/);
-  console.log('GitHub status JS: 5/5 tests passed');
+  assert.match(result, /LOTO · 2nd tirage · [^|]*25\/11\/2026 : 9 – 16 – 21 – 29 – 37 \|/);
+  const missingSecond = await status({...files, './automatisation/donnees/loto-second-tirage.json': new Error('Timeout')});
+  assert.match(missingSecond, /LOTO · 2nd tirage · historique GitHub indisponible.*EuroMillions.*24\/11\/2026/);
+  console.log('GitHub status JS: 7/7 tests passed');
 })().catch(error => {console.error(error);process.exitCode=1;});

@@ -17,14 +17,18 @@
       values.every(value => Number.isInteger(value) && value >= 1 && value <= max);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(result?.date) ||
         !validNumbers(result.nums, 5, numberMax) ||
-        !validNumbers(result.extras, extraCount, extraMax)) throw new Error('Résultat invalide');
+        (extraCount > 0 && !validNumbers(result.extras, extraCount, extraMax))) throw new Error('Résultat invalide');
     const date = result.date.split('-').reverse().join('/');
     const extraLabel = extraCount === 1 ? 'Chance' : 'Étoiles';
-    return 'Dernier tirage dans les archives FDJ du ' + date + ' : ' +
-      result.nums.join(' – ') + ' · ' + extraLabel + ' : ' + result.extras.join(' – ');
+    const numbers = 'Dernier tirage dans les archives FDJ du ' + date + ' : ' + result.nums.join(' – ');
+    return extraCount ? numbers + ' · ' + extraLabel + ' : ' + result.extras.join(' – ') : numbers;
   }
   const summaryRequest = readJSON('automatisation/tableau.json').catch(() => null);
-  const games = [['loto', 'LOTO', 1, 49, 10], ['euromillions', 'EuroMillions', 2, 50, 12]];
+  const games = [
+    ['loto', 'LOTO', 1, 49, 10],
+    ['loto-second-tirage', 'LOTO · 2nd tirage', 0, 49, 0],
+    ['euromillions', 'EuroMillions', 2, 50, 12]
+  ];
   const lines = await Promise.all(games.map(async ([game, label, extraCount, numberMax, extraMax]) => {
     const parts = [];
     try {
@@ -33,6 +37,7 @@
     } catch {
       parts.push('historique GitHub indisponible');
     }
+    if (!extraCount) return label + ' · ' + parts[0];
     const summary = await summaryRequest;
     const status = summary?.games?.[game];
     if (!status) parts.push('état de l’automatisation indisponible');
