@@ -68,3 +68,128 @@ $('jackpotScenarios')?.addEventListener('submit',compareJackpot);
 function selfcheck(){let sum=ranks.reduce((a,r)=>a+r.share,0);if(Math.abs(sum-1)>1e-12||Math.abs(total-19068840)>1e-6||Math.abs(ranks.reduce((a,r)=>a+pRank(r),p1)-(.1669))>.01)throw Error('Erreur de contrôle des probabilités');return true;}
 try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').textContent='Module indisponible : '+e.message;console.error(e)}
 })();
+// Scenario simulation for ordinary LOTO grids, independent of the generation engine.
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const form = $('recoveryForm');
+  if (!form) return;
+  const output = $('recoveryOutput');
+  const second = $('recoverySecond');
+  const main = $('recoveryMainPayouts');
+  const extra = $('recoverySecondPayouts');
+  const mainRanks = [[5,true],[5,false],[4,true],[4,false],[3,true],[3,false],[2,true],[2,false],[0,true]];
+  const secondRanks = [5,4,3,2];
+  function payoutInput(parent, id, description) {
+    const label = document.createElement('label');
+    label.className = 'label';
+    label.htmlFor = id;
+    label.textContent = description + ' (€)';
+    const input = document.createElement('input');
+    input.id = id;
+    input.type = 'number';
+    input.inputMode = 'decimal';
+    input.min = '0';
+    input.step = '0.01';
+    parent.append(label, input);
+  }
+  for (const [hits, chance] of mainRanks) {
+    const label = hits === 0 ? 'Chance avec 0 ou 1 bon numéro' : hits + ' bons numéros, ' + (chance ? 'avec' : 'sans') + ' Chance';
+    payoutInput(main, 'recoveryPayout' + hits + Number(chance), label);
+  }
+  for (const hits of secondRanks) payoutInput(extra, 'recoverySecondPayout' + hits, hits + ' bons numéros');
+
+  function cents(input) {
+    const value = input.value === '' ? 0 : Math.round(input.valueAsNumber * 100);
+    if (!Number.isSafeInteger(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / 40) {
+      throw new Error('Vérifie les montants saisis.');
+    }
+    return value;
+  }
+
+  function readGrids(value) {
+    const rows = value.trim().split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (!rows.length || rows.length > 20) throw new Error('Saisis entre 1 et 20 grilles.');
+    return rows.map((line, i) => {
+      const fields = line.split(/[\s,;]+/);
+      const values = fields.map(Number);
+      const numbers = values.slice(0, 5);
+      if (fields.length !== 6 || fields.some(x => !/^\d{1,2}$/.test(x)) ||
+          new Set(numbers).size !== 5 || numbers.some(n => n < 1 || n > 49) ||
+          values[5] < 1 || values[5] > 10) throw new Error('Grille ' + (i + 1) + ' invalide.');
+      return {numbers, chance: values[5]};
+    });
+  }
+
+  function draw(marked) {
+    marked.fill(0);
+    for (let i = 0; i < 5; i++) {
+      let n;
+      do { n = 1 + Math.floor(Math.random() * 49); } while (marked[n]);
+      marked[n] = 1;
+    }
+  }
+
+  function estimate(grids, stake, mainPayouts, extraPayouts, samples) {
+    const primary = new Uint8Array(50), secondary = new Uint8Array(50);
+    let recovered = 0;
+    for (let round = 0; round < samples; round++) {
+      draw(primary);
+      if (extraPayouts) draw(secondary);
+      const chance = 1 + Math.floor(Math.random() * 10);
+      let paid = 0;
+      for (const grid of grids) {
+        let mainHits = 0, secondHits = 0;
+        for (const n of grid.numbers) {
+          mainHits += primary[n];
+          if (extraPayouts) secondHits += secondary[n];
+        }
+        const hasChance = Number(grid.chance === chance);
+        paid += mainPayouts[(mainHits < 2 ? 0 : mainHits) * 2 + hasChance];
+        if (extraPayouts) paid += extraPayouts[secondHits];
+      }
+      if (paid >= stake) recovered++;
+    }
+    return recovered;
+  }
+
+  const initial = output.textContent;
+  form.addEventListener('input', () => {
+    extra.hidden = extra.disabled = !second.checked;
+    output.textContent = initial;
+  });
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const grids = readGrids($('recoveryGrids').value);
+      const stake = cents($('recoveryStake'));
+      if (stake <= 0) throw new Error('La mise doit être supérieure à 0 €.');
+      const mainPayouts = new Array(12).fill(0);
+      for (const [hits, chance] of mainRanks) {
+        mainPayouts[hits * 2 + Number(chance)] = cents($('recoveryPayout' + hits + Number(chance)));
+      }
+      const extraPayouts = second.checked ? new Array(6).fill(0) : null;
+      if (extraPayouts) {
+        for (const hits of secondRanks) extraPayouts[hits] = cents($('recoverySecondPayout' + hits));
+      }
+      if (![...mainPayouts, ...(extraPayouts ?? [])].some(Boolean)) {
+        throw new Error('Saisis au moins un montant de lot dans ton scénario.');
+      }
+      const samples = 30000;
+      const recovered = estimate(grids, stake, mainPayouts, extraPayouts, samples);
+      const p = recovered / samples;
+      const z = 1.96;
+      const scale = 1 + z*z/samples;
+      const center = (p + z*z/(2*samples))/scale;
+      const error = z*Math.sqrt(p*(1-p)/samples + z*z/(4*samples*samples))/scale;
+      const percent = new Intl.NumberFormat('fr-FR', {style:'percent', maximumFractionDigits:2});
+      const money = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'});
+      output.textContent = recovered + ' simulations sur ' + samples + ' atteignent ' + money.format(stake/100) +
+        ' (' + percent.format(p) + '). Intervalle de simulation à 95 % : ' +
+        percent.format(Math.max(0,center-error)) + ' à ' + percent.format(Math.min(1,center+error)) +
+        '. Cet intervalle mesure l’incertitude de la simulation sous les montants saisis.';
+    } catch (error) {
+      output.textContent = error.message;
+    }
+  });
+})();

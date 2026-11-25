@@ -302,7 +302,7 @@ function randomGrid(game){
    for(const number of numbers)usage[number]++;
    covered.add(key);
   }
-  return {lines,covered,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
+  return {lines,covered,mainGrids,extraKeys,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
  }
  let lot=buildLot();
  // Compare candidates when main numbers or randomly selected complements can repeat.
@@ -341,6 +341,26 @@ function randomGrid(game){
  paid.textContent='Au moins un lot payé au tirage principal : '+percent.format(main.paid)+
   '. Hors codes, My Million et options. Un lot payé peut être inférieur au coût total des grilles.';
  output.replaceChildren(title,list,paid,matches,coverage,odds);
+ if(loto){
+  const secondOdds=document.createElement('p');
+  secondOdds.textContent='Option 2nd tirage : '+percent.format(main.two)+
+   ' de toucher au moins un lot si toutes ces grilles y participent.';
+  output.append(secondOdds);
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='btn alt';
+  button.textContent='Estimer la récupération de la mise';
+  button.addEventListener('click',()=>{
+   const field=$('recoveryGrids');
+   const next=lot.mainGrids.map((numbers,i)=>[...numbers,lot.extraKeys[i]].join(' ')).join('\n');
+   if(field.value.trim()&&field.value!==next&&!window.confirm('Remplacer les grilles saisies dans le simulateur ?'))return;
+   field.value=next;
+   $('recoveryForm').dispatchEvent(new Event('input'));
+   $('recoveryPanel').open=true;
+   $('recoveryPanel').scrollIntoView({block:'start'});
+  });
+  output.append(button);
+ }
 }
 function wire(){
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
