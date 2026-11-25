@@ -154,9 +154,28 @@ try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').
   }
 
   const initial = output.textContent;
-  form.addEventListener('input', () => {
+  const draftKey = 'ia_loto_recovery_draft_v1';
+  const draftFields = [...form.querySelectorAll('input[id], textarea[id]')];
+  function syncSecond() {
     extra.hidden = extra.disabled = !second.checked;
+  }
+  try {
+    const draft = JSON.parse(localStorage.getItem(draftKey) ?? '{}');
+    for (const field of draftFields) {
+      const value = draft?.[field.id];
+      if (field.type === 'checkbox' && typeof value === 'boolean') field.checked = value;
+      else if (field.type !== 'checkbox' && typeof value === 'string') field.value = value;
+    }
+  } catch {}
+  syncSecond();
+  form.addEventListener('input', () => {
+    syncSecond();
     output.textContent = initial;
+    try {
+      const draft = Object.fromEntries(draftFields.map(field =>
+        [field.id, field.type === 'checkbox' ? field.checked : field.value]));
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {}
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
