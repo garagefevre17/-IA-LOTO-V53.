@@ -251,25 +251,36 @@ function randomGrid(game){
   if(loto)possibleExtras.push([first]);
   else for(let second=first+1;second<=extraMax;second++)possibleExtras.push([first,second]);
  }
- const planned=spread?take(possibleExtras,Math.min(count,possibleExtras.length)):[];
  const spreadMain=$('quickCoverMain').checked;
- const lines=new Set(), covered=new Set(), mainGrids=[];
- const usage=new Uint8Array(max+1);
- while(lines.size<count){
-  const numbers=spreadMain?
-   take(Array.from({length:max},(_,i)=>i+1),max)
-    .sort((a,b)=>usage[a]-usage[b]).slice(0,5).sort((a,b)=>a-b):
-   sample(max,5);
-  const extras=planned[lines.size]??sample(extraMax,extraCount);
-  const key=extras.join(' – ');
-  const line=numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+key;
-  if(lines.has(line))continue;
-  lines.add(line);
-  mainGrids.push(numbers);
-  for(const number of numbers)usage[number]++;
-
-  covered.add(key);
+ function buildLot(){
+  const planned=spread?take(possibleExtras.slice(),Math.min(count,possibleExtras.length)):[];
+  const lines=new Set(), covered=new Set(), mainGrids=[];
+  const usage=new Uint8Array(max+1);
+  while(lines.size<count){
+   const numbers=spreadMain?
+    take(Array.from({length:max},(_,i)=>i+1),max)
+     .sort((a,b)=>usage[a]-usage[b]).slice(0,5).sort((a,b)=>a-b):
+    sample(max,5);
+   const extras=planned[lines.size]??sample(extraMax,extraCount);
+   const key=extras.join(' – ');
+   const line=numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+key;
+   if(lines.has(line))continue;
+   lines.add(line);
+   mainGrids.push(numbers);
+   for(const number of numbers)usage[number]++;
+   covered.add(key);
+  }
+  return {lines,covered,main:mainMatchOdds(max,mainGrids)};
  }
+ let lot=buildLot();
+ // Disjoint sets of five have identical odds, so only compare lots when overlap is unavoidable.
+ if(spreadMain&&count*5>max){
+  for(let i=1;i<4;i++){
+   const candidate=buildLot();
+   if(candidate.main.two>lot.main.two)lot=candidate;
+  }
+ }
+ const {lines,covered,main}=lot;
  const label=loto?'LOTO':'EuroMillions';
  const total=loto?19068840:139838160;
  const format=new Intl.NumberFormat('fr-FR');
@@ -288,7 +299,6 @@ function randomGrid(game){
  const extraTotal=loto?10:66;
  const outcome=loto?'Toucher le numéro Chance':'Trouver les deux étoiles sur une grille';
  coverage.textContent=outcome+' : '+covered.size+' / '+extraTotal+' ('+percent.format(covered.size/extraTotal)+'). Cette couverture seule ne garantit pas un bénéfice.';
- const main=mainMatchOdds(max,mainGrids);
  const matches=document.createElement('p');
  matches.textContent=main.covered+' numéros principaux couverts sur '+max+
   ' · Au moins un bon numéro dans le lot : '+percent.format(main.one)+
@@ -299,7 +309,14 @@ function randomGrid(game){
 function wire(){
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
  $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
- document.querySelectorAll('[data-shortcut]').forEach(button=>button.addEventListener('click',()=>switchPage(button.dataset.shortcut)));
+ const mobileModules=$('mobileModules'), legacyToggle=$('v19LegacyToggle');
+ legacyToggle.addEventListener('click',()=>mobileModules.setAttribute('aria-expanded',legacyToggle.getAttribute('aria-expanded')));
+ mobileModules.addEventListener('click',()=>legacyToggle.click());
+ document.querySelectorAll('[data-shortcut]').forEach(button=>button.addEventListener('click',()=>{
+  if(document.body.classList.contains('show-legacy'))legacyToggle.click();
+  switchPage(button.dataset.shortcut);
+  if(button.dataset.scrollTo)$(button.dataset.scrollTo).scrollIntoView({block:'start'});
+ }));
  $('journalSearch').addEventListener('input',showLog);
  window.addEventListener('online',()=>{if(!document.hidden)sync(true);});
  window.setInterval(()=>{if(!document.hidden)sync();},300000);
