@@ -184,7 +184,18 @@ function test(){const btn=$('testBtn');btn.disabled=true;$('testOutput').textCon
  const predictedMax=Math.max(...methods.map(m=>scores[m]));let sim=1000,exceed=0,rng=prng(0x71A0F07);let totals=[];for(let b=0;b<sim;b++){let sums=new Int32Array(methods.length);for(let i=0;i<preds.length;i++){const sampled=takeRandom(49,5,rng);for(let j=0;j<methods.length;j++)sums[j]+=intersections(preds[i][j].numbers,sampled)}let max=Math.max(...sums);totals.push(max);if(max>=predictedMax)exceed++}let p=(1+exceed)/(sim+1);let sorted=[...methods].sort((a,b)=>scores[b]-scores[a]);lastTestCsv=csv.map(r=>r.map(csvValue).join(',')).join('\n');$('exportTestBtn').disabled=false;const theoretical=25/49;$('testOutput').className='status good';$('testOutput').innerHTML='<strong>Test terminé sur '+count+' tirages</strong><table class="tbl"><tr><th>Méthode</th><th>Bons/ tirage</th></tr>'+sorted.map(m=>'<tr><td>'+esc(m)+'</td><td>'+ (scores[m]/count).toFixed(3)+' ('+scores[m]+'/'+count+')</td></tr>').join('')+'</table><p>Référence théorique : '+theoretical.toFixed(3)+' bon numéro/tirage.</p><p><strong>p globale simulée (meilleur des 7 modèles) : '+p.toFixed(3)+'</strong> • '+sim+' univers de tirages aléatoires simulés.</p><div class="note">Un p élevé ne montre aucun avantage. Un p faible exigerait confirmation future indépendante. Les méthodes ont été choisies après observation d’analyses historiques : ce test n’est donc pas une validation prospective indépendante. Le modèle bayésien actuel et Chauds 100 ont le même classement : ils ne constituent pas deux sources d’information indépendantes.</div>'; }catch(e){$('testOutput').className='status bad';$('testOutput').textContent='Erreur de test : '+e.message}finally{btn.disabled=false}},30)}
 function grids(){let count=Number($('gridCount').value),mode=$('gridMode').value,rng=secureRand(),set=new Set(),arr=[],attempts=0;while(arr.length<count&&attempts++<20000){let a=takeRandom(49,5,rng).sort((a,b)=>a-b);if(mode==='popular'&&a.filter(n=>n>31).length<3)continue;let chance=1+Math.floor(rng()*10),k=a.join('-')+'-'+chance;if(set.has(k))continue;set.add(k);arr.push({numbers:a,chance})}if(arr.length<count)throw Error('Nombre insuffisant de grilles');let ratio=count/19068840;$('gridOutput').className='status good';$('gridOutput').innerHTML='<strong>'+arr.length+' grille(s) distincte(s)</strong>'+arr.map((g,i)=>'<div class="method">Grille '+(i+1)+balls(g)+'</div>').join('')+'<p>Probabilité d’au moins un jackpot pour ces '+count+' combinaisons distinctes, au même tirage : <strong>'+ (100*ratio).toFixed(6)+' %</strong>.</p><small>Plusieurs grilles coûtent plus cher. Aucune garantie de gain ; le critère >31 ne modifie pas la probabilité de sortie.</small>'}
 function selfTest(){let res=[];function chk(label,test){try{if(!test())throw Error('assertion fausse');res.push('✓ '+label)}catch(e){res.push('✗ '+label+' : '+e.message)}}chk('Historique valide',()=>draws.length>=2833&&draws.every(valid));chk('Tirages sans doublons',()=>new Set(draws.map(r=>r[0])).size===draws.length);chk('Froids 300 reproductible',()=>JSON.stringify(choose('froids',draws))===JSON.stringify(choose('froids',draws)));chk('7 stratégies produisent des grilles valides',()=>['froids','chauds','bayes','tendance','retards','consensus_v8','aleatoire'].every(k=>{let v=choose(k,draws);return valid(['2026-11-14',...v.numbers,v.chance])}));chk('Consensus sans double vote bayésien',()=>{let h=draws;let m=['froids','chauds','tendance','retards'].map(k=>choose(k,h));let v=choose('consensus_v8',h);return m.length===4&&v.numbers.length===5});chk('Probabilité jackpot exacte',()=>19068840===1906884*10);chk('Chi² p=1 si statistique 0',()=>chiSquareP(0,48)===1);chk('Normalisation des CSV et validation dates',()=>parseCSV('date,n1,n2,n3,n4,n5,b1\n2026-11-11,4,5,14,17,29,8').length===1);$('selfResult').className='status '+(res.every(x=>x.startsWith('✓'))?'good':'bad');$('selfResult').innerHTML=res.map(esc).join('<br>')}
-function mainMatchOdds(max, grids){
+function mainMatchOdds(max, grids, extraKeys, loto){
+ // At most 20 grids, so each distinct EuroMillions star pair fits in one bit.
+ const extraMasks=new Uint32Array(max+1);
+ const distinctExtras=new Map();
+ for(let i=0;i<grids.length;i++){
+  const key=extraKeys[i];
+  if(!distinctExtras.has(key))distinctExtras.set(key,distinctExtras.size);
+  if(!loto){
+   const bit=1<<distinctExtras.get(key);
+   for(const n of grids[i])extraMasks[n]|=bit;
+  }
+ }
  const adjacency=Array.from({length:max+1},()=>new Uint8Array(max+1));
  const covered=new Set();
  for(const grid of grids){
@@ -197,7 +208,8 @@ function mainMatchOdds(max, grids){
  let noSingle=1;
  for(let i=0;i<5;i++)noSingle*=Math.max(0,max-covered.size-i)/(max-i);
  // A draw has two numbers on a grid exactly when it contains one of its pairs.
- let withoutPair=0;
+ let withoutPair=0, starPairWins=0;
+ const extraOutcomes=loto?10:66;
  for(let a=1;a<=max-4;a++){
   const rowA=adjacency[a];
   for(let b=a+1;b<=max-3;b++){
@@ -209,14 +221,24 @@ function mainMatchOdds(max, grids){
     for(let d=c+1;d<max;d++){
      if(rowA[d]||rowB[d]||rowC[d])continue;
      const rowD=adjacency[d];
+     const firstFour=extraMasks[a]|extraMasks[b]|extraMasks[c]|extraMasks[d];
      for(let e=d+1;e<=max;e++){
-      if(!(rowA[e]||rowB[e]||rowC[e]||rowD[e]))withoutPair++;
+      if(rowA[e]||rowB[e]||rowC[e]||rowD[e])continue;
+      withoutPair++;
+      // Without two main matches, EuroMillions pays only for one number and both stars.
+      let mask=firstFour|extraMasks[e];
+      mask-=(mask>>>1)&0x55555555;
+      mask=(mask&0x33333333)+((mask>>>2)&0x33333333);
+      starPairWins+=(((mask+(mask>>>4))&0x0f0f0f0f)*0x01010101)>>>24;
      }
     }
    }
   }
  }
- return {covered:covered.size,one:1-noSingle,two:(total-withoutPair)/total};
+ const withPair=total-withoutPair;
+ const winningExtraOutcomes=loto?withoutPair*distinctExtras.size:starPairWins;
+ return {covered:covered.size,one:1-noSingle,two:withPair/total,
+  paid:(withPair*extraOutcomes+winningExtraOutcomes)/(total*extraOutcomes)};
 }
 function randomGrid(game){
  const loto=game==='loto';
@@ -252,32 +274,43 @@ function randomGrid(game){
   else for(let second=first+1;second<=extraMax;second++)possibleExtras.push([first,second]);
  }
  const spreadMain=$('quickCoverMain').checked;
+ function spreadNumbers(usage){
+  const buckets=Array.from({length:count+1},()=>[]);
+  for(let n=1;n<=max;n++)buckets[usage[n]].push(n);
+  const picked=[];
+  for(const bucket of buckets){
+   const needed=5-picked.length;
+   if(!needed)break;
+   if(bucket.length<=needed)picked.push(...bucket);
+   else picked.push(...take(bucket,needed));
+  }
+  return picked.sort((a,b)=>a-b);
+ }
  function buildLot(){
   const planned=spread?take(possibleExtras.slice(),Math.min(count,possibleExtras.length)):[];
-  const lines=new Set(), covered=new Set(), mainGrids=[];
+  const lines=new Set(), covered=new Set(), mainGrids=[], extraKeys=[];
   const usage=new Uint8Array(max+1);
   while(lines.size<count){
-   const numbers=spreadMain?
-    take(Array.from({length:max},(_,i)=>i+1),max)
-     .sort((a,b)=>usage[a]-usage[b]).slice(0,5).sort((a,b)=>a-b):
-    sample(max,5);
+   const numbers=spreadMain?spreadNumbers(usage):sample(max,5);
    const extras=planned[lines.size]??sample(extraMax,extraCount);
    const key=extras.join(' – ');
    const line=numbers.join(' – ')+' · '+(loto?'Chance':'Étoiles')+' : '+key;
    if(lines.has(line))continue;
    lines.add(line);
    mainGrids.push(numbers);
+   extraKeys.push(key);
    for(const number of numbers)usage[number]++;
    covered.add(key);
   }
-  return {lines,covered,main:mainMatchOdds(max,mainGrids)};
+  return {lines,covered,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
  }
  let lot=buildLot();
- // Disjoint sets of five have identical odds, so only compare lots when overlap is unavoidable.
- if(spreadMain&&count*5>max){
+ // Compare candidates when main numbers or randomly selected complements can repeat.
+ if(spreadMain&&(count*5>max||(!spread&&count>1))){
   for(let i=1;i<4;i++){
    const candidate=buildLot();
-   if(candidate.main.two>lot.main.two)lot=candidate;
+   if(candidate.main.paid>lot.main.paid||
+      (candidate.main.paid===lot.main.paid&&candidate.main.two>lot.main.two))lot=candidate;
   }
  }
  const {lines,covered,main}=lot;
@@ -303,8 +336,11 @@ function randomGrid(game){
  matches.textContent=main.covered+' numéros principaux couverts sur '+max+
   ' · Au moins un bon numéro dans le lot : '+percent.format(main.one)+
   ' · Au moins deux bons numéros sur une même grille : '+percent.format(main.two)+
-  '. Ces correspondances ne mesurent pas la probabilité d’un lot payé.';
- output.replaceChildren(title,list,matches,coverage,odds);
+  '.';
+ const paid=document.createElement('p');
+ paid.textContent='Au moins un lot payé au tirage principal : '+percent.format(main.paid)+
+  '. Hors codes, My Million et options. Un lot payé peut être inférieur au coût total des grilles.';
+ output.replaceChildren(title,list,paid,matches,coverage,odds);
 }
 function wire(){
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
