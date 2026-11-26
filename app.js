@@ -274,6 +274,7 @@ function randomGrid(game){
   else for(let second=first+1;second<=extraMax;second++)possibleExtras.push([first,second]);
  }
  const spreadMain=$('quickCoverMain').checked;
+ const avoidDates=$('quickAvoidDates').checked;
  function spreadNumbers(usage){
   const buckets=Array.from({length:count+1},()=>[]);
   for(let n=1;n<=max;n++)buckets[usage[n]].push(n);
@@ -302,15 +303,18 @@ function randomGrid(game){
    for(const number of numbers)usage[number]++;
    covered.add(key);
   }
-  return {lines,covered,mainGrids,extraKeys,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
+  const dateNumbers=mainGrids.reduce((sum,grid)=>sum+grid.filter(number=>number<=31).length,0);
+  return {lines,covered,mainGrids,extraKeys,dateNumbers,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
  }
  let lot=buildLot();
- // Compare candidates when main numbers or randomly selected complements can repeat.
- if(spreadMain&&(count*5>max||(!spread&&count>1))){
+ // Compare candidates when overlap can matter or the date preference is enabled.
+ if(avoidDates||(spreadMain&&(count*5>max||(!spread&&count>1)))){
   for(let i=1;i<4;i++){
    const candidate=buildLot();
-   if(candidate.main.paid>lot.main.paid||
-      (candidate.main.paid===lot.main.paid&&candidate.main.two>lot.main.two))lot=candidate;
+   const paidDiff=candidate.main.paid-lot.main.paid;
+   const pairDiff=candidate.main.two-lot.main.two;
+   if(paidDiff>0||(paidDiff===0&&(pairDiff>0||
+      (pairDiff===0&&avoidDates&&candidate.dateNumbers<lot.dateNumbers))))lot=candidate;
   }
  }
  const {lines,covered,main}=lot;
