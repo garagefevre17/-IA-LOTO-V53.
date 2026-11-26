@@ -65,6 +65,43 @@ function compareJackpot(event){
  output.replaceChildren(...children,intro,scenarios);
 }
 $('jackpotScenarios')?.addEventListener('submit',compareJackpot);
+// Mean payout per ordinary LOTO rank, in euros, from the 100 FDJ draws
+// dated 2026-04-08 through 2026-11-25. Compare only main-draw ranks 2–9.
+const archivePayouts = [128861.713,2641.504,468.166,54.365,21.528,10.383,4.497,2.20];
+const archiveSecondary = ranks.reduce((sum, rank, i) => sum + pRank(rank)*archivePayouts[i], 0);
+const archiveButton = $('scenarioUseArchive');
+if (archiveButton) {
+ const game = $('scenarioGame');
+ const secondary = $('scenarioSecondary');
+ const note = $('scenarioArchiveNote');
+ const archiveValue = archiveSecondary.toFixed(9);
+ let applied = false;
+ function syncArchiveOption() {
+  archiveButton.disabled = game.value !== 'loto';
+  if (archiveButton.disabled && applied) {
+   secondary.value = '';
+   applied = false;
+  }
+  note.hidden = !applied;
+ }
+ game.addEventListener('change', () => {
+  syncArchiveOption();
+  $('scenarioOutput').textContent = 'Relance le calcul pour le jeu sélectionné.';
+ });
+ secondary.addEventListener('input', () => {
+  applied = false;
+  syncArchiveOption();
+  $('scenarioOutput').textContent = 'Relance le calcul avec le nouveau montant.';
+ });
+ archiveButton.addEventListener('click', () => {
+  if (game.value !== 'loto') return;
+  secondary.value = archiveValue;
+  applied = true;
+  syncArchiveOption();
+  $('scenarioOutput').textContent = 'Estimation FDJ chargée. Touche Calculer pour comparer les scénarios.';
+ });
+ syncArchiveOption();
+}
 function selfcheck(){let sum=ranks.reduce((a,r)=>a+r.share,0);if(Math.abs(sum-1)>1e-12||Math.abs(total-19068840)>1e-6||Math.abs(ranks.reduce((a,r)=>a+pRank(r),p1)-(.1669))>.01)throw Error('Erreur de contrôle des probabilités');return true;}
 try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').textContent='Module indisponible : '+e.message;console.error(e)}
 })();
