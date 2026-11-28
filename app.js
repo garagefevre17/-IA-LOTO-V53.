@@ -472,7 +472,117 @@ function showEuroGridCheck(event){
  }
 }
 
+function reduceGrids(selection, minimum, budget){
+ const scenarios=[];
+ for(let mask=0;mask<2**selection.length;mask++){
+  if(countBits(mask)===5)scenarios.push(mask);
+ }
+ function countBits(bits){
+  let count=0;
+  while(bits){bits&=bits-1;count++;}
+  return count;
+ }
+ const words=Math.ceil(scenarios.length/32);
+ const masks=scenarios.map(mask=>{
+  const covered=new Uint32Array(words);
+  for(const [index,draw] of scenarios.entries()){
+   if(countBits(mask&draw)>=minimum)covered[index>>>5]|=1<<(index&31);
+  }
+  return covered;
+ });
+ const grids=scenarios.map(mask=>selection.filter((_,index)=>mask&(1<<index)));
+ const dateCounts=grids.map(grid=>grid.filter(number=>number<=31).length);
+ const covered=new Uint32Array(words);
+ const chosen=[];
+ let count=0;
+ while(chosen.length<budget&&count<scenarios.length){
+  let best=-1, gain=0;
+  for(const [index,mask] of masks.entries()){
+   let additional=0;
+   for(let word=0;word<words;word++)additional+=countBits(mask[word]&~covered[word]);
+   if(additional>gain||(additional>0&&additional===gain&&dateCounts[index]<dateCounts[best])){
+    best=index;
+    gain=additional;
+   }
+  }
+  if(best<0)break;
+  chosen.push(grids[best]);
+  count+=gain;
+  for(let word=0;word<words;word++)covered[word]|=masks[best][word];
+ }
+ return {grids:chosen,covered:count,total:scenarios.length};
+}
+
+function showReducedGrids(event){
+ event.preventDefault();
+ const output=$('reducedOutput');
+ try{
+  const loto=$('reducedGame').value==='loto';
+  const maximum=loto?49:50;
+  const fields=$('reducedNumbers').value.trim().split(/[\s,;]+/);
+  const numbers=fields.map(Number).sort((a,b)=>a-b);
+  const minimum=Number($('reducedMinimum').value);
+  const budget=Number($('reducedBudget').value);
+  if(fields.length<7||fields.length>16||new Set(numbers).size!==numbers.length||
+     fields.some(field=>!/^\d{1,2}$/.test(field)||Number(field)<1||Number(field)>maximum)){
+   throw Error('Saisis entre 7 et 16 numéros distincts de 1 à '+maximum+'.');
+  }
+  if(![3,4].includes(minimum)||!Number.isInteger(budget)||budget<1||budget>50){
+   throw Error('Choisis un objectif de 3 ou 4 bons numéros et un budget de 1 à 50 grilles.');
+  }
+  if(!globalThis.crypto?.getRandomValues)throw Error('Le générateur sécurisé est indisponible.');
+  const result=reduceGrids(numbers,minimum,budget);
+  const extras=[];
+  for(let i=1;i<=(loto?10:12);i++){
+   if(loto)extras.push([i]);
+   else for(let j=i+1;j<=12;j++)extras.push([i,j]);
+  }
+  const buffer=new Uint32Array(1);
+  let available=[];
+  const rows=result.grids.map(grid=>{
+   if(!available.length)available=extras.slice();
+   const bound=available.length;
+   const limit=2**32-(2**32%bound);
+   do{crypto.getRandomValues(buffer);}while(buffer[0]>=limit);
+   return {grid,extra:available.splice(buffer[0]%bound,1)[0]};
+  });
+  const allDraws=loto?1906884:2118760;
+  const percent=new Intl.NumberFormat('fr-FR',{style:'percent',maximumSignificantDigits:4});
+  const summary=document.createElement('p');
+  const coverage=result.covered+' tirages couverts sur '+result.total+' ('+
+   percent.format(result.covered/result.total)+') avec '+rows.length+' grille(s). ';
+  const condition='La probabilité que les cinq boules tirées figurent dans ta sélection est de '+
+   percent.format(result.total/allDraws)+'.';
+  const target='au moins '+minimum+' bons numéros sur une même grille';
+  summary.textContent=coverage+(result.covered===result.total?
+   'Garantie conditionnelle : '+target+' si les cinq boules tirées figurent dans la sélection. ':
+   'L’objectif de '+target+' est atteint dans les scénarios couverts. ')+condition;
+  const list=document.createElement('ol');
+  for(const {grid,extra} of rows){
+   const item=document.createElement('li');
+   item.textContent=grid.join(' – ')+(loto?' · Chance ':' · Étoiles ')+extra.join(' – ');
+   list.append(item);
+  }
+  const download=document.createElement('button');
+  download.type='button';
+  download.className='btn alt';
+  download.textContent='Exporter les grilles CSV';
+  download.addEventListener('click',()=>{
+   const header=loto?'n1;n2;n3;n4;n5;chance':'n1;n2;n3;n4;n5;etoile1;etoile2';
+   exportFile('grilles-'+(loto?'loto':'euromillions')+'.csv',
+    [header,...rows.map(({grid,extra})=>[...grid,...extra].join(';'))].join('\n'),'text/csv');
+  });
+  output.replaceChildren(summary,list,download);
+ }catch(error){
+  output.textContent=error.message;
+ }
+}
+
 function wire(){
+ $('reducedForm').addEventListener('submit',showReducedGrids);
+ $('reducedForm').addEventListener('input',()=>{
+  $('reducedOutput').textContent='Calcule à nouveau la couverture pour les paramètres modifiés.';
+ });
  $('euroCheckForm').addEventListener('submit',showEuroGridCheck);
  $('euroCheckForm').addEventListener('input',()=>{
   $('euroCheckOutput').textContent='Compare les grilles pour afficher les correspondances.';
