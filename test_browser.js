@@ -89,3 +89,45 @@ assert(quickFields.euroCheckPanel.open);
 assert(quickFields.euroCheckDraw.focused);
 assert.strictEqual(inputEvents,1);
 console.log('EuroMillions JS: vérification des correspondances et transfert des grilles validés.');
+
+const wheelCode=app.slice(app.indexOf('function reduceGrids'),app.indexOf('function wire'));
+const wheelContext={
+ $:id=>wheelFields[id],
+ document:{createElement:()=>({
+  children:[], append(child){this.children.push(child);}, setAttribute(){},
+  addEventListener(type,listener){this[type]=listener;}
+ })},
+ crypto:require('node:crypto').webcrypto,
+ intersections:(a,b)=>a.filter(value=>b.includes(value)).length,
+ fetch:async path=>({ok:true,json:async()=>JSON.parse(fs.readFileSync(path,'utf8'))}),
+ exportFile:(name,content)=>{downloaded={name,content};}
+};
+const wheel=vm.runInNewContext(wheelCode+'\n({reduceGrids,showReducedGrids})',wheelContext);
+const wheelPool=[4,11,19,23,28,33,37,41,45,49];
+const complete=wheel.reduceGrids(wheelPool,3,12,49);
+assert.equal(complete.covered,252);
+assert.equal(complete.ordinaryCovered,19362);
+assert.equal(complete.grids.length,2);
+let downloaded;
+const wheelFields={
+ reducedGame:{value:'loto'}, reducedMinimum:{value:'3'}, reducedBudget:{value:'12'},
+ reducedNumbers:{value:wheelPool.join(' ')},reducedPrice:{value:'3'},
+ reducedOutput:{replaceChildren(...children){this.children=children;}}
+};
+(async()=>{
+ for(const game of ['loto','euromillions']){
+  wheelFields.reducedGame.value=game;
+  wheel.showReducedGrids({preventDefault(){}});
+  const [summary,odds,list,save,audit,report]=wheelFields.reducedOutput.children;
+  assert.match(summary.textContent,/252 tirages couverts sur 252/);
+  assert.match(odds.textContent,/6,00/);
+  assert.equal(list.children.length,2);
+  save.click();
+  assert.equal(downloaded.name,'grilles-'+game+'.csv');
+  assert.equal(downloaded.content.split('\n').length,3);
+  await audit.click();
+  assert.match(report.textContent,/Référence théorique/);
+  assert.equal(audit.disabled,false);
+ }
+ console.log('Système réducteur : coût, couverture, export et archives LOTO et EuroMillions vérifiés.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

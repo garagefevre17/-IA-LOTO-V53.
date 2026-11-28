@@ -510,6 +510,26 @@ function reduceGrids(selection, minimum, budget, maximum){
   count+=gain;
   for(let word=0;word<words;word++)covered[word]|=masks[best][word];
  }
+ // Try one replacement per grid while coverage is incomplete.
+ for(let position=0;position<chosen.length&&count<scenarios.length;position++){
+  const remaining=new Uint32Array(words);
+  for(const [index,grid] of chosen.entries()){
+   if(index===position)continue;
+   for(let word=0;word<words;word++)remaining[word]|=masks[grid][word];
+  }
+  let best=chosen[position], bestCoverage=count;
+  for(const [index,mask] of masks.entries()){
+   if(chosen.includes(index))continue;
+   let trial=0;
+   for(let word=0;word<words;word++)trial+=countBits(remaining[word]|mask[word]);
+   if(trial>bestCoverage||(trial===bestCoverage&&dateCounts[index]<dateCounts[best])){
+    best=index;
+    bestCoverage=trial;
+   }
+  }
+  chosen[position]=best;
+  count=bestCoverage;
+ }
  // Complete each intersection with the selection using balls outside it.
  const outside=maximum-selection.length;
  const completions=[1];
@@ -528,7 +548,9 @@ function showReducedGrids(event){
  event.preventDefault();
  const output=$('reducedOutput');
  try{
-  const loto=$('reducedGame').value==='loto';
+  const game=$('reducedGame').value;
+  if(game!=='loto'&&game!=='euromillions')throw Error('Choisis un jeu valide.');
+  const loto=game==='loto';
   const maximum=loto?49:50;
   const fields=$('reducedNumbers').value.trim().split(/[\s,;]+/);
   const numbers=fields.map(Number).sort((a,b)=>a-b);
@@ -595,13 +617,63 @@ function showReducedGrids(event){
    exportFile('grilles-'+(loto?'loto':'euromillions')+'.csv',
     [header,...rows.map(({grid,extra})=>[...grid,...extra].join(';'))].join('\n'),'text/csv');
   });
-  output.replaceChildren(summary,odds,list,download);
+  const retrospective=document.createElement('button');
+  retrospective.type='button';
+  retrospective.className='btn alt';
+  retrospective.textContent='Comparer ce lot aux archives';
+  const report=document.createElement('p');
+  report.setAttribute('role','status');
+  retrospective.addEventListener('click',async()=>{
+   retrospective.disabled=true;
+   report.textContent='Chargement des archives…';
+   try{
+    const response=await fetch('./automatisation/donnees/'+game+'.json');
+    if(!response.ok)throw Error('Archives indisponibles.');
+    const {draws:history}=await response.json();
+    const known=new Set();
+    let successes=0;
+    if(!Array.isArray(history)||!history.length)throw Error('Archives vides ou invalides.');
+    for(const row of history){
+     const day=new Date(row?.date+'T00:00:00Z');
+     if(!/^\d{4}-\d{2}-\d{2}$/.test(row?.date)||!Number.isFinite(day.getTime())||
+        day.toISOString().slice(0,10)!==row.date||known.has(row.date)||
+        !Array.isArray(row.nums)||row.nums.length!==5||new Set(row.nums).size!==5||
+        row.nums.some(n=>!Number.isInteger(n)||n<1||n>maximum)){
+      throw Error('Archives invalides ou dates en double.');
+     }
+     known.add(row.date);
+     if(rows.some(({grid})=>intersections(grid,row.nums)>=minimum))successes++;
+    }
+    const dates=[...known].sort();
+    const formatDate=date=>date.split('-').reverse().join('/');
+    report.textContent='Du '+formatDate(dates[0])+' au '+formatDate(dates.at(-1))+', '+
+     successes+' tirages sur '+history.length+' atteignent l’objectif ('+
+     percent.format(successes/history.length)+'). Référence théorique pour ce lot : '+
+     percent.format(result.ordinaryCovered/allDraws)+
+     '. Cette comparaison rétrospective évalue un lot fixe.';
+   }catch(error){
+    report.textContent='Comparaison impossible. '+error.message;
+   }finally{
+    retrospective.disabled=false;
+   }
+  });
+  output.replaceChildren(summary,odds,list,download,retrospective,report);
  }catch(error){
   output.textContent=error.message;
  }
 }
 
 function wire(){
+ $('reducedRandom').addEventListener('click',()=>{
+  const field=$('reducedNumbers');
+  try{
+   const limit=$('reducedGame').value==='loto'?49:50;
+   field.value=takeRandom(limit,12,secureRand()).sort((a,b)=>a-b).join(' ');
+   field.dispatchEvent(new Event('input',{bubbles:true}));
+  }catch(error){
+   $('reducedOutput').textContent=error.message;
+  }
+ });
  $('reducedForm').addEventListener('submit',showReducedGrids);
  $('reducedForm').addEventListener('input',()=>{
   $('reducedOutput').textContent='Calcule à nouveau la couverture pour les paramètres modifiés.';
