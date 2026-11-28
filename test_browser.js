@@ -213,3 +213,23 @@ for(const game of ['loto','euromillions']){
 const tiny=archiveAudit.parseDrawArchive('date,n1,n2,n3,n4,n5,b1\n2026-11-25,9,15,20,35,42,8');
 assert.equal(archiveAudit.analyzeDrawArchive(tiny,300).main.p,null);
 console.log('Audit CSV : formats LOTO et EuroMillions, fenêtre récente et données invalides vérifiés.');
+
+const dashboard=fs.readFileSync('bilan-prospectif-ui.js','utf8');
+const summarize=vm.runInNewContext(
+ dashboard.slice(dashboard.indexOf('function summarize'),dashboard.indexOf('async function refresh'))+'\nsummarize',
+ {
+  parisParts:date=>Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+   timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'
+  }).formatToParts(date).map(part=>[part.type,part.value])),
+  intersections:(a,b)=>a.filter(n=>b.includes(n)).length
+ }
+);
+const timely={target:'2026-11-25',lastKnown:'2026-11-23',createdAt:'2026-11-25T16:59:00Z',numbers:[9,15,20,40,49]};
+const waiting={...timely,target:'2026-11-28',lastKnown:'2026-11-25',createdAt:'2026-11-28T10:00:00Z'};
+const late={...timely,target:'2026-11-30',createdAt:'2026-11-30T17:00:00Z'};
+const badHash={...timely,target:'2026-12-02'};
+eq(summarize([timely,waiting,late,badHash],[4],new Map([
+ ['2026-11-25',['2026-11-25',9,15,20,35,42,8]]
+])),{evaluated:1,pending:1,rejected:2,hits:3});
+eq(summarize([timely,timely],[2],new Map()),{evaluated:0,pending:0,rejected:2,hits:0});
+console.log('Bilan prospectif : correspondances, échéance de Paris et exclusions vérifiées.');

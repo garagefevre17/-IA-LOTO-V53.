@@ -39,5 +39,5 @@ function download(name,data){let blob=new Blob([JSON.stringify(data,null,2)],{ty
 async function exportJournal(){try{let x=await audit();download('IA_LOTO_XBIAS_previsions.json',{schema:MODEL,exportedAt:new Date().toISOString(),entries:x.a,problems:x.bad});}catch(e){put('xbJournal',esc(e.message),'bad');}}
 function init(){if(!$('xbCalculate'))return; $('xbCalculate').addEventListener('click',current);$('xbSave').addEventListener('click',save);$('xbReview').addEventListener('click',review);$('xbExportJournal').addEventListener('click',exportJournal);$('xbRun').addEventListener('click',backtest);$('xbExportTest').addEventListener('click',()=>report?download('IA_LOTO_XBIAS_audit.json',report):put('xbTest','Lancer le test avant export.','warn'));review();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.XBIAS25={predict,test,nextDate,hyper,MODEL};
+window.XBIAS25={predict,test,nextDate,hyper,MODEL,audit};
 })();
