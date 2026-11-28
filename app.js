@@ -364,6 +364,25 @@ function randomGrid(game){
    $('recoveryPanel').scrollIntoView({block:'start'});
   });
   output.append(button);
+ }else{
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='btn alt';
+  button.textContent='Ouvrir ces grilles dans le vérificateur';
+  button.addEventListener('click',()=>{
+   const field=$('euroCheckGrids');
+   const next=lot.mainGrids.map((numbers,i)=>numbers.join(' ')+' + '+lot.extraKeys[i]).join('\n');
+   if(field.value.trim()&&field.value!==next&&!window.confirm('Remplacer les grilles déjà saisies dans le vérificateur ?'))return;
+   if(field.value!==next){
+    field.value=next;
+    field.dispatchEvent(new Event('input',{bubbles:true}));
+   }
+   const panel=$('euroCheckPanel');
+   panel.open=true;
+   panel.scrollIntoView({block:'start'});
+   $('euroCheckDraw').focus({preventScroll:true});
+  });
+  output.append(button);
  }
 }
 function compareEuroGrids(drawText, gridsText){
