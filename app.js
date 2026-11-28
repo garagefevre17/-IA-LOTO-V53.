@@ -64,7 +64,14 @@ function choose(kind,hist){if(hist.length<300)throw Error('300 tirages nécessai
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 function prng(seed){let s=seed>>>0;return()=>{s+=0x6D2B79F5;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 function takeRandom(limit,n,rng){const a=Array.from({length:limit},(_,i)=>i+1);for(let i=0;i<n;i++){let j=i+Math.floor(rng()*(limit-i));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)}
-function secureRand(){const max=4294967296;return function(){if(globalThis.crypto?.getRandomValues){let a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/max}return Math.random()}}
+function secureRand(){
+ if(!globalThis.crypto?.getRandomValues)throw Error('Le générateur sécurisé est indisponible dans ce navigateur.');
+ const buffer=new Uint32Array(1);
+ return ()=>{
+  crypto.getRandomValues(buffer);
+  return buffer[0]/2**32;
+ };
+}
 function nextOrdinary(date){let d=new Date(date+'T12:00:00Z');do{d.setUTCDate(d.getUTCDate()+1)}while(![1,3,6].includes(d.getUTCDay()));return d.toISOString().slice(0,10)}
 function currentTarget(){let today=isoToday(),last=draws.at(-1)[0],next=nextOrdinary(last);if(next<today||(next===today&&parisHour()>=18)){return {date:next,stale:true}}return {date:next,stale:false}}
 function balls(obj){return '<div class="balls">'+obj.numbers.map(x=>'<span class="ball">'+x+'</span>').join('')+'<span class="ball c">'+obj.chance+'</span></div>'}
@@ -274,7 +281,11 @@ function randomGrid(game){
   else for(let second=first+1;second<=extraMax;second++)possibleExtras.push([first,second]);
  }
  const spreadMain=$('quickCoverMain').checked;
- const avoidDates=$('quickAvoidDates').checked;
+ const avoidPatterns=$('quickAvoidDates').checked;
+ const pastCombinations=new Set();
+ if(avoidPatterns&&loto){
+  for(const row of draws)pastCombinations.add(row.slice(1,6).join(',')+'|'+row[6]);
+ }
  function spreadNumbers(usage){
   const buckets=Array.from({length:count+1},()=>[]);
   for(let n=1;n<=max;n++)buckets[usage[n]].push(n);
@@ -303,18 +314,29 @@ function randomGrid(game){
    for(const number of numbers)usage[number]++;
    covered.add(key);
   }
-  const dateNumbers=mainGrids.reduce((sum,grid)=>sum+grid.filter(number=>number<=31).length,0);
-  return {lines,covered,mainGrids,extraKeys,dateNumbers,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
+  let flaggedGrids=0, dateNumbers=0;
+  if(avoidPatterns){
+   for(const [index,grid] of mainGrids.entries()){
+    const dates=grid.filter(number=>number<=31).length;
+    const step=grid[1]-grid[0];
+    const progression=grid.every((number,i)=>number===grid[0]+step*i);
+    const replay=pastCombinations.has(grid.join(',')+'|'+extraKeys[index]);
+    if(dates===5||progression||replay)flaggedGrids++;
+    dateNumbers+=dates;
+   }
+  }
+  return {lines,covered,mainGrids,extraKeys,flaggedGrids,dateNumbers,main:mainMatchOdds(max,mainGrids,extraKeys,loto)};
  }
  let lot=buildLot();
  // Compare candidates when overlap can matter or the date preference is enabled.
- if(avoidDates||(spreadMain&&(count*5>max||(!spread&&count>1)))){
+ if(avoidPatterns||(spreadMain&&(count*5>max||(!spread&&count>1)))){
   for(let i=1;i<4;i++){
    const candidate=buildLot();
    const paidDiff=candidate.main.paid-lot.main.paid;
    const pairDiff=candidate.main.two-lot.main.two;
-   if(paidDiff>0||(paidDiff===0&&(pairDiff>0||
-      (pairDiff===0&&avoidDates&&candidate.dateNumbers<lot.dateNumbers))))lot=candidate;
+   const fewerPatterns=avoidPatterns&&(candidate.flaggedGrids<lot.flaggedGrids||
+    (candidate.flaggedGrids===lot.flaggedGrids&&candidate.dateNumbers<lot.dateNumbers));
+   if(paidDiff>0||(paidDiff===0&&(pairDiff>0||(pairDiff===0&&fewerPatterns))))lot=candidate;
   }
  }
  const {lines,covered,main}=lot;

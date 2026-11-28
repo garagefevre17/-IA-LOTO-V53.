@@ -231,7 +231,16 @@ try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').
       if (![...mainPayouts, ...(extraPayouts ?? [])].some(Boolean)) {
         throw new Error('Saisis au moins un montant de lot dans ton scénario.');
       }
-      const samples = 30000;
+      // Linearity gives the mean for the whole lot even when grids overlap.
+      let meanPerGrid = 0;
+      for (let hits = 0; hits <= 5; hits++) {
+        const probability = choose(5, hits) * choose(44, 5 - hits) / choose(49, 5);
+        const rankIndex = (hits < 2 ? 0 : hits) * 2;
+        meanPerGrid += probability * (0.9 * mainPayouts[rankIndex] +
+          0.1 * mainPayouts[rankIndex + 1] + (extraPayouts?.[hits] ?? 0));
+      }
+      const meanNet = (meanPerGrid * grids.length - stake) / 100;
+      const samples = 10000;
       const recovered = estimate(grids, stake, mainPayouts, extraPayouts, samples);
       const p = recovered / samples;
       const z = 1.96;
@@ -243,7 +252,9 @@ try{selfcheck();$('evBtn').addEventListener('click',run)}catch(e){$('evOutput').
       output.textContent = recovered + ' simulations sur ' + samples + ' atteignent ' + money.format(stake/100) +
         ' (' + percent.format(p) + '). Intervalle de simulation à 95 % : ' +
         percent.format(Math.max(0,center-error)) + ' à ' + percent.format(Math.min(1,center+error)) +
-        '. Cet intervalle mesure l’incertitude de la simulation sous les montants saisis.';
+        '. Cet intervalle mesure l’incertitude de la simulation sous les montants saisis.' +
+        ' Bilan net moyen par tirage selon ce scénario, après déduction de la mise : ' +
+        money.format(meanNet) + ' (calcul exact à partir des rangs et des montants saisis).';
     } catch (error) {
       output.textContent = error.message;
     }
