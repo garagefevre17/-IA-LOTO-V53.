@@ -26,8 +26,8 @@ async function restoreBackup(file){if(!file||file.size>10*1024*1024)throw Error(
  // verify every imported record without changing persistent state: use SHA-256 identical to V18
  for(const rec of [...oldJournal,...obj.records]){const {hash,...unsigned}=rec;const bytes=new TextEncoder().encode(JSON.stringify(unsigned));const actual=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');if(actual!==hash)throw Error('Empreinte invalide pour '+rec.target);}
  const beforeData=localStorage.getItem(K_DATA),beforeJournal=localStorage.getItem(K_JOURNAL);
- try{localStorage.setItem(K_DATA,JSON.stringify(adds));localStorage.setItem(K_JOURNAL,JSON.stringify(all));if(rows(K_JOURNAL).length!==all.length||rows(K_DATA).length!==adds.length)throw Error('Persistance incomplète');}
- catch(e){try{if(beforeData==null)localStorage.removeItem(K_DATA);else localStorage.setItem(K_DATA,beforeData);if(beforeJournal==null)localStorage.removeItem(K_JOURNAL);else localStorage.setItem(K_JOURNAL,beforeJournal)}catch{}throw e}
+ try{(window.LotoVault||localStorage).setItem(K_DATA,JSON.stringify(adds));(window.LotoVault||localStorage).setItem(K_JOURNAL,JSON.stringify(all));if(rows(K_JOURNAL).length!==all.length||rows(K_DATA).length!==adds.length)throw Error('Persistance incomplète');}
+ catch(e){try{if(beforeData==null)(window.LotoVault||localStorage).removeItem(K_DATA);else (window.LotoVault||localStorage).setItem(K_DATA,beforeData);if(beforeJournal==null)(window.LotoVault||localStorage).removeItem(K_JOURNAL);else (window.LotoVault||localStorage).setItem(K_JOURNAL,beforeJournal)}catch{}throw e}
  return `${adds.length} ajouts conservés ; ${all.length} prévisions conservées. Recharge la page pour recalculer les tableaux.`;}
 function setup(){// Le bouton Modules avancés gère directement la navigation dans index.html.
  $('v19Check')?.addEventListener('click',async()=>{state('v19Status','Vérifications en cours…');try{await check()}catch(e){state('v19Status','Diagnostic interrompu : '+e.message,'bad')}});

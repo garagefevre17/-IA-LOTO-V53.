@@ -1,10 +1,10 @@
-const CACHE='ia-loto-v53-unique-5';
+const CACHE='ia-loto-v53-unique-6';
 const HISTORY_CACHE='ia-loto-v53-historiques';
 const HISTORIES=[
  './automatisation/donnees/loto.json',
  './automatisation/donnees/euromillions.json'
 ].map(path=>new URL(path,self.registration.scope).href);
-const ASSETS=["./", "./index.html", "./app.js", "./data.js", "./ev.js", "./protocole12.js", "./science10.js", "./science11.js", "./v13.js", "./v14.js", "./v15.js", "./v16.js", "./v1610.js", "./v1611.js", "./v1612.js", "./v1613.js", "./v1614.js", "./v1615.js", "./v1616.js", "./v163.js", "./v164.js", "./v165.js", "./v166.js", "./v167.js", "./v168.js", "./v169.js", "./v17.js", "./v18.js", "./v19.js", "./v20.js", "./v21.js", "./v22.js", "./v23.js", "./v24.js", "./xbias25.js", "./manifest.webmanifest", "./icons/ia-loto-180.png", "./icons/ia-loto-192.png", "./icons/ia-loto-512.png", "./github_status.js", "./euromillions-chauds_VERIFIE.html"];
+const ASSETS=["./", "./index.html", "./app.js", "./storage-ios.js", "./data.js", "./ev.js", "./protocole12.js", "./science10.js", "./science11.js", "./v13.js", "./v14.js", "./v15.js", "./v16.js", "./v1610.js", "./v1611.js", "./v1612.js", "./v1613.js", "./v1614.js", "./v1615.js", "./v1616.js", "./v163.js", "./v164.js", "./v165.js", "./v166.js", "./v167.js", "./v168.js", "./v169.js", "./v17.js", "./v18.js", "./v19.js", "./v20.js", "./v21.js", "./v22.js", "./v23.js", "./v24.js", "./xbias25.js", "./manifest.webmanifest", "./icons/ia-loto-180.png", "./icons/ia-loto-192.png", "./icons/ia-loto-512.png", "./github_status.js", "./euromillions-chauds_VERIFIE.html"];
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);

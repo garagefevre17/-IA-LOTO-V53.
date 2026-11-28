@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),KEY='ia_loto_expert_v1_draws',LOGKEY='ia
 let draws=[],baseRows=[],log=[],selection=null,lastTestCsv='',currentSync=0;
 const esc=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 function notify(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3500)}
-function store(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function store(k,v){try{(window.LotoVault||localStorage).setItem(k,v);return true}catch(e){return false}}
 function get(k){try{return localStorage.getItem(k)}catch{return null}}
 const parisFormatter=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'});
 function parisParts(now=new Date()){
