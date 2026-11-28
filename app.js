@@ -701,6 +701,15 @@ function wireGenerators(){
 }
 
 function wire(){
+ $('homeBackup').addEventListener('click',async()=>{
+  const status=$('homeBackupStatus');
+  try{
+   await window.Loto20.backup();
+   status.textContent='Export lancé. Vérifie que le fichier JSON est bien enregistré.';
+  }catch(error){
+   status.textContent='Export impossible : '+error.message;
+  }
+ });
  const mobileModules=$('mobileModules'), legacyToggle=$('v19LegacyToggle');
  legacyToggle.addEventListener('click',()=>mobileModules.setAttribute('aria-expanded',legacyToggle.getAttribute('aria-expanded')));
  mobileModules.addEventListener('click',()=>legacyToggle.click());

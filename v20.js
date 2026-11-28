@@ -1,7 +1,7 @@
 /* IA LOTO V20 — diagnostic transversal read-only et export non destructif. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-const KEYS=['ia_loto_v18_additions_v1','ia_loto_v18_prospective_v1','ia_loto_v17_journal_v1','ia_loto_expert_v1_draws','ia_loto_expert_v1_log','ia_loto_journal_v4','ia_loto_v7_last_sync'];
+const KEYS=['ia_loto_v18_additions_v1','ia_loto_v18_prospective_v1','ia_loto_v17_journal_v1','ia_loto_expert_v1_draws','ia_loto_expert_v1_log','ia_loto_journal_v4','ia_loto_v7_last_sync','ia_loto_v25_xbias_journal_v1','ia_loto_v24_prospectif_fixe_v1'];
 const state=(id,msg,type='')=>{const e=$(id);if(!e)return;e.className='status '+type;e.textContent=msg;};
 const sha=async x=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(x))))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
