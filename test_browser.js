@@ -171,3 +171,22 @@ const syncCode=app.slice(app.indexOf('async function sync('),app.indexOf('// Num
  assert.equal(saved,1);
  console.log('Synchronisation : délai sur le corps JSON, cache hors ligne et reprise vérifiés.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+const boot=app.slice(app.indexOf('function startApplication()'));
+for(const failedStep of ['history','navigation']){
+ const calls=[],errors=[],bootStatus={};
+ const step=name=>()=>{
+  calls.push(name);
+  if(name===failedStep)throw new Error('échec simulé');
+ };
+ vm.runInNewContext(boot,{
+  load:step('history'),wireGenerators:step('generators'),wire:step('navigation'),
+  updateStats:step('dashboard'),sync:step('sync'),$:()=>bootStatus,
+  window:{reportLotoError:message=>errors.push(message)},navigator:{},console:{error(){}}
+ });
+ assert(calls.includes('generators'));
+ assert.equal(calls.includes('sync'),failedStep!=='history');
+ assert.match(bootStatus.textContent,/Démarrage partiel/);
+ assert.equal(errors.length,1);
+}
+console.log('Démarrage partiel : générateurs disponibles après une panne simulée.');

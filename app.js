@@ -676,7 +676,7 @@ function showReducedGrids(event){
  }
 }
 
-function wire(){
+function wireGenerators(){
  $('reducedRandom').addEventListener('click',()=>{
   const field=$('reducedNumbers');
   try{
@@ -698,6 +698,9 @@ function wire(){
  $('quickTrend').addEventListener('click',showQuickTrend);
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
  $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
+}
+
+function wire(){
  const mobileModules=$('mobileModules'), legacyToggle=$('v19LegacyToggle');
  legacyToggle.addEventListener('click',()=>mobileModules.setAttribute('aria-expanded',legacyToggle.getAttribute('aria-expanded')));
  mobileModules.addEventListener('click',()=>legacyToggle.click());
@@ -726,7 +729,32 @@ window.prepareV16Selection=function(pick){
  switchPage('predict');
 };
 
-try{load();wire();updateStats();$('boot').className='status good';$('boot').textContent='JavaScript actif. Calculs et boutons initialisés. Données locales prêtes.';$('engine').textContent='● Centre V22 actif • moteurs historiques conservés';sync();
+function startApplication(){
+ const failures=[];
+ function runStep(label, run){
+  try{
+   run();
+   return true;
+  }catch(error){
+   const message=label+' — '+(error?.message??String(error));
+   failures.push(message);
+   window.reportLotoError?.(message);
+   console.error(label,error);
+   return false;
+  }
+ }
+ const historyReady=runStep('Historique local',load);
+ const generatorsReady=runStep('Générateurs',wireGenerators);
+ runStep('Navigation et modules historiques',wire);
+ if(historyReady)runStep('Tableau de bord',updateStats);
+ const status=$('boot');
+ status.className=failures.length?'status warn':'status good';
+ status.textContent=failures.length?'Démarrage partiel. '+failures.join(' · '):
+  'JavaScript actif. Calculs et boutons initialisés. Données locales prêtes.';
+ if(historyReady&&generatorsReady&&!failures.length)$('engine').textContent='● Centre V22 actif • moteurs historiques conservés';
+ if(historyReady)sync();
  if('serviceWorker' in navigator&&location.protocol==='https:'){
   Promise.resolve().then(()=>navigator.serviceWorker.register('./sw.js')).catch(console.warn);
- }}catch(e){$('boot').className='status bad';$('boot').textContent='Erreur de démarrage : '+e.message;console.error(e)}
+ }
+}
+startApplication();
