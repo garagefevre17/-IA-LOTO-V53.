@@ -330,17 +330,31 @@ def build_forecast(game, data, target):
             main[n] += 1
         for n in row['extras']:
             extra[n] += 1
-    cold = sorted(range(1, len(main)), key=lambda n: (main[n], n))
     hot = sorted(range(1, len(main)), key=lambda n: (-main[n], n))
-    cold_extra = sorted(range(1, len(extra)), key=lambda n: (extra[n], n))
     hot_extra = sorted(range(1, len(extra)), key=lambda n: (-extra[n], n))
     if game == 'loto':
-        grids = [{'method': 'FROIDS300_FIGE', 'numbers': sorted(cold[:5]), 'extras': cold_extra[:1]}]
+        def trend(field, limit, count):
+            recent = [0] * (limit + 1)
+            reference = [0] * (limit + 1)
+            for index, row in enumerate(sample[-100:]):
+                for number in row[field]:
+                    reference[number] += 1
+                    if index >= 70:
+                        recent[number] += 1
+            ranked = sorted(range(1, limit + 1),
+                            key=lambda n: (-(recent[n] / 30 - reference[n] / 100), n))
+            return sorted(ranked[:count])
+
+        grids = [{'method': 'TENDANCES_30_100_FIGE_V1',
+                  'numbers': trend('nums', 49, 5), 'extras': trend('extras', 10, 1)}]
     else:
         grids = [{'method': 'CHAUDS365_TOP15_RANGS_'+str(i*5+1)+'_'+str((i+1)*5),
                   'numbers': sorted(hot[5*i:5*i+5]), 'extras': sorted(hot_extra[2*i:2*i+2])} for i in range(3)]
     return {'game': game, 'target': key, 'sample_start': sample[0]['date'], 'sample_end': sample[-1]['date'],
-            'count': len(sample), 'method_version': 1, 'grids': grids,
+            'count': len(sample), 'method_version': 2 if game == 'loto' else 1, 'grids': grids,
+            **({'uniform_reference': {'expected_number_hits_per_draw': 25/49,
+                                      'expected_extra_hits_per_draw': 1/10}}
+               if game == 'loto' else {}),
             'main_frequency': {str(i): main[i] for i in range(1, len(main))},
             'extra_frequency': {str(i): extra[i] for i in range(1, len(extra))},
             'advantage_proven': False}

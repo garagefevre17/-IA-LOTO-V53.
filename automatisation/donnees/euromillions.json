@@ -1,4 +1,4 @@
-{"retrieved_at":"2026-11-24T21:45:56Z","source":[{"parsed_rows":711,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afe6","zip_sha256":"6848dc7cc94e9153ad3d4e067f03c2c83dd51ffa8da05d241db722ff7aa5455a"},{"parsed_rows":97,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afd6","zip_sha256":"90036089e5eedbf86c6298105134c8fe80f5a80d29c76e5fbcc20eaeaadd6c82"},{"parsed_rows":253,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afc6","zip_sha256":"6d84073487efa6691d61aa1781b0cc45d329c03fdb7d775a3ce77e2a337dcf55"}],
+{"retrieved_at":"2026-11-28T10:22:57Z","source":[{"parsed_rows":711,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afe6","zip_sha256":"6848dc7cc94e9153ad3d4e067f03c2c83dd51ffa8da05d241db722ff7aa5455a"},{"parsed_rows":97,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afd6","zip_sha256":"90036089e5eedbf86c6298105134c8fe80f5a80d29c76e5fbcc20eaeaadd6c82"},{"parsed_rows":253,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afc6","zip_sha256":"6d84073487efa6691d61aa1781b0cc45d329c03fdb7d775a3ce77e2a337dcf55"},{"parsed_rows":712,"url":"https://www.sto.api.fdj.fr/anonymous/service-draw-info/v3/documentations/1a2b3c4d-9876-4562-b3fc-2c963f66afe6","zip_sha256":"a9da6aca94ab057deb4a8ac27c68532bd2a26a437b0b6b29a8e2489aad9a85d7"}],
 "draws":[
 {"date":"2016-09-27","extras":[2,12],"nums":[6,9,13,39,41]},
 {"date":"2016-09-30","extras":[2,10],"nums":[17,35,37,43,44]},
@@ -1060,5 +1060,6 @@
 {"date":"2026-11-13","extras":[2,12],"nums":[16,27,32,41,45]},
 {"date":"2026-11-17","extras":[1,2],"nums":[35,37,38,46,48]},
 {"date":"2026-11-20","extras":[1,8],"nums":[8,21,24,36,49]},
-{"date":"2026-11-24","extras":[5,6],"nums":[3,5,37,44,49]}
+{"date":"2026-11-24","extras":[5,6],"nums":[3,5,37,44,49]},
+{"date":"2026-11-27","extras":[5,9],"nums":[12,17,26,34,38]}
 ]}

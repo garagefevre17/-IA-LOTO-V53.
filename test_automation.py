@@ -29,12 +29,14 @@ def samples(game, start, end):
     return result
 
 class PipelineTests(unittest.TestCase):
-    def test_loto_froids_300_fixed_and_no_future_data(self):
+    def test_loto_tendance_fixed_and_no_future_data(self):
         target=date(2026,11,21) # Saturday
         history=samples('loto',date(2024,10,1),target-timedelta(days=1))
         forecast=build_forecast('loto',history,target)
         self.assertEqual(forecast['count'],300)
         self.assertEqual(len(forecast['grids']),1)
+        self.assertEqual(forecast['grids'][0]['method'], 'TENDANCES_30_100_FIGE_V1')
+        self.assertEqual(forecast['uniform_reference']['expected_number_hits_per_draw'], 25/49)
         self.assertEqual(len(forecast['grids'][0]['numbers']),5)
         added=history+[{'date':target.isoformat(),'nums':[1,2,3,4,5],'extras':[1]}]
         self.assertEqual(forecast,build_forecast('loto',added,target))
