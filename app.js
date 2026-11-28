@@ -366,7 +366,55 @@ function randomGrid(game){
   output.append(button);
  }
 }
+function compareEuroGrids(drawText, gridsText){
+ function parseLine(line, label){
+  const fields=line.trim().replace(/\s+-\s+/g, " ").split(/[\s,;–—+]+/);
+  const values=fields.map(Number);
+  const numbers=values.slice(0,5), stars=values.slice(5);
+  if(fields.length!==7||fields.some(field=>!/^\d{1,2}$/.test(field))||
+     numbers.some(n=>n<1||n>50)||stars.some(n=>n<1||n>12)||
+     new Set(numbers).size!==5||new Set(stars).size!==2){
+   throw Error(label+' : saisis 5 numéros distincts (1 à 50) et 2 étoiles distinctes (1 à 12).');
+  }
+  return {numbers,stars};
+ }
+ const draw=parseLine(drawText,'Résultat');
+ const lines=gridsText.split(/\r?\n/).filter(line=>line.trim());
+ if(!lines.length)throw Error('Saisis au moins une grille.');
+ return lines.map((line,index)=>{
+  const grid=parseLine(line,'Grille '+(index+1));
+  return {
+   numbers:grid.numbers.filter(n=>draw.numbers.includes(n)).sort((a,b)=>a-b),
+   stars:grid.stars.filter(n=>draw.stars.includes(n)).sort((a,b)=>a-b)
+  };
+ });
+}
+
+function showEuroGridCheck(event){
+ event.preventDefault();
+ const output=$('euroCheckOutput');
+ try{
+  const matches=compareEuroGrids($('euroCheckDraw').value,$('euroCheckGrids').value);
+  const list=document.createElement('ol');
+  for(const {numbers,stars} of matches){
+   const item=document.createElement('li');
+   const describe=(values,singular,plural)=>values.length+' '+(values.length>1?plural:singular)+
+    (values.length?' ('+values.join(', ')+')':'');
+   item.textContent=describe(numbers,'bon numéro','bons numéros')+' · '+
+    describe(stars,'bonne étoile','bonnes étoiles');
+   list.append(item);
+  }
+  output.replaceChildren(list);
+ }catch(error){
+  output.textContent=error.message;
+ }
+}
+
 function wire(){
+ $('euroCheckForm').addEventListener('submit',showEuroGridCheck);
+ $('euroCheckForm').addEventListener('input',()=>{
+  $('euroCheckOutput').textContent='Compare les grilles pour afficher les correspondances.';
+ });
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
  $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
  const mobileModules=$('mobileModules'), legacyToggle=$('v19LegacyToggle');
