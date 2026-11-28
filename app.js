@@ -385,6 +385,27 @@ function randomGrid(game){
   output.append(button);
  }
 }
+function showQuickTrend(){
+ const output=$('quickGridOutput');
+ if(draws.length<300){
+  output.textContent='Tendances récentes nécessite au moins 300 tirages LOTO.';
+  return;
+ }
+ const target=currentTarget();
+ if(target.stale){
+  output.textContent='Actualise les résultats LOTO avant de calculer la grille Tendances récentes.';
+  return;
+ }
+ const {numbers,chance,cutoff}=choose('tendance',draws);
+ const title=document.createElement('strong');
+ title.textContent='LOTO du '+target.date.split('-').reverse().join('/')+' · Tendances récentes';
+ const grid=document.createElement('p');
+ grid.textContent=numbers.join(' – ')+' · Chance '+chance;
+ const history=document.createElement('small');
+ history.textContent='Dernier tirage utilisé : '+cutoff.split('-').reverse().join('/')+'. Aucun avantage prédictif démontré.';
+ output.replaceChildren(title,grid,history);
+}
+
 function compareEuroGrids(drawText, gridsText){
  function parseLine(line, label){
   const fields=line.trim().replace(/\s+-\s+/g, " ").split(/[\s,;–—+]+/);
@@ -434,6 +455,7 @@ function wire(){
  $('euroCheckForm').addEventListener('input',()=>{
   $('euroCheckOutput').textContent='Compare les grilles pour afficher les correspondances.';
  });
+ $('quickTrend').addEventListener('click',showQuickTrend);
  $('quickLoto').addEventListener('click',()=>randomGrid('loto'));
  $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
  const mobileModules=$('mobileModules'), legacyToggle=$('v19LegacyToggle');
