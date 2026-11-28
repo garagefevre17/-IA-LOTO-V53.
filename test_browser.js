@@ -190,3 +190,26 @@ for(const failedStep of ['history','navigation']){
  assert.equal(errors.length,1);
 }
 console.log('Démarrage partiel : générateurs disponibles après une panne simulée.');
+
+const archiveCode=app.slice(app.indexOf('function parseDrawArchive'),app.indexOf('async function showArchiveAudit'));
+const statsCode=app.slice(app.indexOf('function lnGamma'),app.indexOf('function erf'));
+const archiveAudit=vm.runInNewContext(statsCode+archiveCode+'\n({parseDrawArchive,analyzeDrawArchive})');
+for(const game of ['loto','euromillions']){
+ const draws=JSON.parse(fs.readFileSync('automatisation/donnees/'+game+'.json','utf8')).draws;
+ const source=game==='loto'?draws:draws.filter(d=>d.date>='2016-09-27');
+ const header='date_de_tirage;boule_1;boule_2;boule_3;boule_4;boule_5;'+(game==='loto'?'numero_chance':'"étoile_1";"étoile_2"')+';note';
+ const lines=source.slice(-301).reverse().map(row=>[row.date,...row.nums,...row.extras,'"test; FDJ"'].join(';'));
+ const parsed=archiveAudit.parseDrawArchive('\uFEFF'+[header,...lines].join('\r\n'));
+ assert.equal(parsed.game,game==='loto'?'LOTO':'EuroMillions');
+ const stats=archiveAudit.analyzeDrawArchive(parsed,300);
+ assert.equal(stats.sample.length,300);
+ assert.equal(stats.sample[0].date,source.at(-1).date);
+ assert.equal(stats.main.stats.reduce((sum,row)=>sum+row.hits,0),1500);
+ for(const n of source.at(-1).nums)assert.equal(stats.main.stats[n-1].gap,0);
+ assert(Math.abs(stats.bonus.stats.reduce((sum,row)=>sum+row.score,0)-parsed.extraCount)<1e-10);
+ assert.throws(()=>archiveAudit.parseDrawArchive([header,lines[0],lines[0]].join('\n')),/Date en double/);
+ assert.throws(()=>archiveAudit.parseDrawArchive([header,lines[0].replace(/^([^;]+);\d+;/,'$1;2x;')].join('\n')),/Numéros invalides/);
+}
+const tiny=archiveAudit.parseDrawArchive('date,n1,n2,n3,n4,n5,b1\n2026-11-25,9,15,20,35,42,8');
+assert.equal(archiveAudit.analyzeDrawArchive(tiny,300).main.p,null);
+console.log('Audit CSV : formats LOTO et EuroMillions, fenêtre récente et données invalides vérifiés.');

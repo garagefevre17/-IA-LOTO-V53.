@@ -700,7 +700,145 @@ function wireGenerators(){
  $('quickEuro').addEventListener('click',()=>randomGrid('euromillions'));
 }
 
+function parseDrawArchive(text){
+ const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(line=>line.trim());
+ if(lines.length<2)throw Error('Le CSV doit contenir un en-tête et au moins un tirage.');
+ const separator=lines[0].includes(';')?';':',';
+ const fieldPattern=new RegExp('("(?:[^"]|"")*"|[^"'+separator+']*)'+separator,'gy');
+ function fields(line){
+  const result=[];
+  let end=0;
+  fieldPattern.lastIndex=0;
+  for(const match of (line+separator).matchAll(fieldPattern)){
+   const value=match[1].trim();
+   result.push(value.startsWith('"')?value.slice(1,-1).replace(/""/g,'"'):value);
+   end=match.index+match[0].length;
+  }
+  if(end!==line.length+1)throw Error('Ligne CSV mal formée.');
+  return result;
+ }
+ const names=fields(lines.shift()).map(name=>name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim());
+ const column=(...aliases)=>names.findIndex(name=>aliases.includes(name));
+ const chance=column('numero_chance','chance','b1');
+ const stars=[column('etoile_1','e1'),column('etoile_2','e2')];
+ const loto=chance>=0&&stars.every(index=>index<0);
+ const euro=chance<0&&stars.every(index=>index>=0);
+ if(!loto&&!euro)throw Error('Colonnes Chance ou étoiles absentes, incomplètes ou ambiguës.');
+ const game=loto?'LOTO':'EuroMillions', maximum=loto?49:50, extraMaximum=loto?10:12;
+ const dateColumn=column('date_de_tirage','date_tirage','date');
+ const mainColumns=Array.from({length:5},(_,i)=>column('boule_'+(i+1),'numero_'+(i+1),'n'+(i+1)));
+ if(dateColumn<0||mainColumns.includes(-1))throw Error('Date ou colonnes des cinq boules manquantes.');
+ const seen=new Set(), weekdays=loto?[1,3,6]:[2,5], firstDate=loto?'2008-10-06':'2016-09-27';
+ const rows=lines.map((line,i)=>{
+  try{
+   const values=fields(line);
+   const date=values[dateColumn]?.replace(/^(\d{2})[/-](\d{2})[/-](\d{4})$/,'$3-$2-$1');
+   const day=new Date(date+'T12:00:00Z');
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(day.getTime())||
+      day.toISOString().slice(0,10)!==date||date<firstDate||!weekdays.includes(day.getUTCDay())){
+    throw Error('Date incompatible avec le calendrier et les règles actuelles du '+game+'.');
+   }
+   if(seen.has(date))throw Error('Date en double : '+date+'.');
+   function numbers(columns,max){
+    const raw=columns.map(index=>values[index]);
+    const nums=raw.map(Number);
+    if(raw.some(value=>!/^\d{1,2}$/.test(value))||new Set(nums).size!==nums.length||
+       nums.some(n=>n<1||n>max))throw Error('Numéros invalides ou répétés.');
+    return nums;
+   }
+   const main=numbers(mainColumns,maximum), extras=numbers(loto?[chance]:stars,extraMaximum);
+   seen.add(date);
+   return {date,main,extras};
+  }catch(error){
+   throw Error('Tirage CSV '+(i+1)+' — '+error.message);
+  }
+ });
+ rows.sort((a,b)=>a.date.localeCompare(b.date));
+ return {game,maximum,extraMaximum,extraCount:loto?1:2,weekdays,rows};
+}
+
+function analyzeDrawArchive(archive,windowSize){
+ const sample=archive.rows.slice(-windowSize).reverse();
+ let missing=0;
+ for(let i=1;i<sample.length;i++){
+  const day=new Date(sample[i].date+'T12:00:00Z');
+  day.setUTCDate(day.getUTCDate()+1);
+  while(day.toISOString().slice(0,10)<sample[i-1].date){
+   if(archive.weekdays.includes(day.getUTCDay()))missing++;
+   day.setUTCDate(day.getUTCDate()+1);
+  }
+ }
+ function group(field,maximum,perDraw){
+  const stats=Array.from({length:maximum},(_,i)=>({number:i+1,hits:0,gap:null}));
+  for(const [age,row] of sample.entries()){
+   for(const n of row[field]){
+    const item=stats[n-1];
+    item.hits++;
+    if(item.gap===null)item.gap=age;
+   }
+  }
+  const prior=perDraw/maximum, expected=sample.length*prior;
+  let pearson=0;
+  for(const item of stats){
+   pearson+=(item.hits-expected)**2/expected;
+   item.score=(item.hits+300*prior)/(sample.length+300);
+  }
+  const corrected=pearson*(maximum-1)/(maximum-perDraw);
+  return {stats,expected,corrected,p:expected>=5?chiSquareP(corrected,maximum-1):null};
+ }
+ return {sample,missing,main:group('main',archive.maximum,5),
+  bonus:group('extras',archive.extraMaximum,archive.extraCount)};
+}
+
+async function showArchiveAudit(event){
+ event.preventDefault();
+ const button=$('archiveCsvRun'),output=$('archiveCsvOutput');
+ if(button.disabled)return;
+ button.disabled=true;
+ try{
+  const file=$('archiveCsvFile').files[0];
+  if(!file||file.size>8_000_000)throw Error('Choisis un CSV décompressé de 8 Mo maximum.');
+  const archive=parseDrawArchive(await file.text());
+  const result=analyzeDrawArchive(archive,Number($('archiveCsvWindow').value));
+  const summary=document.createElement('p');
+  summary.textContent=archive.game+' · '+result.sample.length+' tirages, du '+result.sample.at(-1).date+
+   ' au '+result.sample[0].date+' · '+result.missing+' date(s) ordinaire(s) absente(s) dans la période.';
+  const percent=new Intl.NumberFormat('fr-FR',{style:'percent',maximumFractionDigits:2});
+  function table(label,group){
+   const details=document.createElement('details');
+   const title=document.createElement('summary');
+   const test=group.p===null?'échantillon trop petit pour le khi-deux':
+    'khi-deux corrigé '+group.corrected.toFixed(2)+' · p = '+group.p.toPrecision(3);
+   title.textContent=label+' · '+test;
+   const grid=document.createElement('table');
+   grid.className='tbl';
+   const header=grid.createTHead().insertRow();
+   for(const name of ['Numéro','Sorties','Écart (tirages)','Score lissé']){
+    const cell=document.createElement('th');
+    cell.scope='col';
+    cell.textContent=name;
+    header.append(cell);
+   }
+   const body=grid.createTBody();
+   for(const item of group.stats){
+    const row=body.insertRow();
+    for(const value of [item.number,item.hits,item.gap??'≥ '+result.sample.length,percent.format(item.score)]){
+     row.insertCell().textContent=value;
+    }
+   }
+   details.append(title,grid);
+   return details;
+  }
+  output.replaceChildren(summary,table('Boules',result.main),table(archive.extraCount===1?'Chance':'Étoiles',result.bonus));
+ }catch(error){
+  output.textContent=error.message;
+ }finally{
+  button.disabled=false;
+ }
+}
+
 function wire(){
+ $('archiveCsvForm').addEventListener('submit',showArchiveAudit);
  $('homeBackup').addEventListener('click',async()=>{
   const status=$('homeBackupStatus');
   try{
