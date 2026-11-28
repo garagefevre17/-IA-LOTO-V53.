@@ -472,7 +472,7 @@ function showEuroGridCheck(event){
  }
 }
 
-function reduceGrids(selection, minimum, budget){
+function reduceGrids(selection, minimum, budget, maximum){
  const scenarios=[];
  for(let mask=0;mask<2**selection.length;mask++){
   if(countBits(mask)===5)scenarios.push(mask);
@@ -506,11 +506,22 @@ function reduceGrids(selection, minimum, budget){
    }
   }
   if(best<0)break;
-  chosen.push(grids[best]);
+  chosen.push(best);
   count+=gain;
   for(let word=0;word<words;word++)covered[word]|=masks[best][word];
  }
- return {grids:chosen,covered:count,total:scenarios.length};
+ // Complete each intersection with the selection using balls outside it.
+ const outside=maximum-selection.length;
+ const completions=[1];
+ for(let k=1;k<=5-minimum;k++)completions[k]=completions[k-1]*(outside-k+1)/k;
+ let ordinaryCovered=count;
+ for(let mask=0;mask<2**selection.length;mask++){
+  const inside=countBits(mask);
+  if(inside>=minimum&&inside<5&&chosen.some(index=>countBits(mask&scenarios[index])>=minimum)){
+   ordinaryCovered+=completions[5-inside];
+  }
+ }
+ return {grids:chosen.map(index=>grids[index]),covered:count,total:scenarios.length,ordinaryCovered};
 }
 
 function showReducedGrids(event){
@@ -531,7 +542,12 @@ function showReducedGrids(event){
    throw Error('Choisis un objectif de 3 ou 4 bons numéros et un budget de 1 à 50 grilles.');
   }
   if(!globalThis.crypto?.getRandomValues)throw Error('Le générateur sécurisé est indisponible.');
-  const result=reduceGrids(numbers,minimum,budget);
+  const priceText=$('reducedPrice').value.trim();
+  const price=Number(priceText);
+  if(priceText&&(!Number.isFinite(price)||price<=0||price>10000)){
+   throw Error('Saisis un prix par grille compris entre 0,01 € et 10 000 €.');
+  }
+  const result=reduceGrids(numbers,minimum,budget,maximum);
   const extras=[];
   for(let i=1;i<=(loto?10:12);i++){
    if(loto)extras.push([i]);
@@ -557,6 +573,13 @@ function showReducedGrids(event){
   summary.textContent=coverage+(result.covered===result.total?
    'Garantie conditionnelle : '+target+' si les cinq boules tirées figurent dans la sélection. ':
    'L’objectif de '+target+' est atteint dans les scénarios couverts. ')+condition;
+  const odds=document.createElement('p');
+  odds.textContent='Sur un tirage ordinaire, probabilité d’obtenir '+target+' : '+
+   percent.format(result.ordinaryCovered/allDraws)+'. Ce calcul porte sur les boules principales.';
+  if(priceText){
+   const euros=new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'});
+   odds.textContent+=' Coût du lot au prix saisi : '+euros.format(rows.length*price)+'.';
+  }
   const list=document.createElement('ol');
   for(const {grid,extra} of rows){
    const item=document.createElement('li');
@@ -572,7 +595,7 @@ function showReducedGrids(event){
    exportFile('grilles-'+(loto?'loto':'euromillions')+'.csv',
     [header,...rows.map(({grid,extra})=>[...grid,...extra].join(';'))].join('\n'),'text/csv');
   });
-  output.replaceChildren(summary,list,download);
+  output.replaceChildren(summary,odds,list,download);
  }catch(error){
   output.textContent=error.message;
  }
