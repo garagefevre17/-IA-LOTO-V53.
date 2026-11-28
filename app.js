@@ -152,21 +152,34 @@ async function sync(manual=false){
  btn.disabled=true;
  const status=$('syncStatus');
  status.textContent='Lecture de l’historique LOTO produit par le collecteur FDJ…';
- const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);
+ let timer;
  try{
-  const response=await fetch('./automatisation/donnees/loto.json',{signal:ctrl.signal,cache:'no-store'});
-  if(!response.ok)throw Error('HTTP '+response.status);
-  const data=await response.json();
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  const timeout=new Promise((_,reject)=>{
+   timer=setTimeout(()=>{
+    reject(Error('délai de synchronisation dépassé (4 s)'));
+    controller?.abort();
+   },4000);
+  });
+  const request=fetch('./automatisation/donnees/loto.json',{
+   cache:'no-store',...(controller?{signal:controller.signal}:{})
+  }).then(async response=>{
+   if(!response.ok)throw Error('HTTP '+response.status);
+   return {data:await response.json(),cached:response.headers.get('X-IA-Loto-Cache')==='offline'};
+  });
+  const {data,cached}=await Promise.race([request,timeout]);
   if(!Array.isArray(data.draws)||!data.draws.length)throw Error('Historique absent');
   const rows=data.draws.map(({date,nums,extras})=>{
    if(!Array.isArray(nums)||nums.length!==5||!Array.isArray(extras)||extras.length!==1)throw Error('Tirage LOTO invalide');
    return [date,...nums,...extras];
   });
   const {same,added}=mergeRemote(rows,'archives FDJ');
-  currentSync=Date.now();
-  store(LASTSYNC,String(currentSync));
-  status.className='status good';
-  status.textContent=same+' tirage(s) commun(s), '+added+' ajouté(s). Dernier résultat local : '+draws.at(-1)[0]+'.';
+  if(!cached){
+   currentSync=Date.now();
+   store(LASTSYNC,String(currentSync));
+  }
+  status.className=cached?'status warn':'status good';
+  status.textContent=(cached?'Copie hors ligne utilisée. ':'')+same+' tirage(s) commun(s), '+added+' ajouté(s). Dernier résultat local : '+draws.at(-1)[0]+'.';
  }catch(error){
   status.className='status warn';
   status.textContent='Historique FDJ indisponible : '+error.message+'. Historique local disponible.';
@@ -713,4 +726,7 @@ window.prepareV16Selection=function(pick){
  switchPage('predict');
 };
 
-try{load();wire();updateStats();$('boot').className='status good';$('boot').textContent='JavaScript actif. Calculs et boutons initialisés. Données locales prêtes.';$('engine').textContent='● Centre V22 actif • moteurs historiques conservés';if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});sync();}catch(e){$('boot').className='status bad';$('boot').textContent='Erreur de démarrage : '+e.message;console.error(e)}
+try{load();wire();updateStats();$('boot').className='status good';$('boot').textContent='JavaScript actif. Calculs et boutons initialisés. Données locales prêtes.';$('engine').textContent='● Centre V22 actif • moteurs historiques conservés';sync();
+ if('serviceWorker' in navigator&&location.protocol==='https:'){
+  Promise.resolve().then(()=>navigator.serviceWorker.register('./sw.js')).catch(console.warn);
+ }}catch(e){$('boot').className='status bad';$('boot').textContent='Erreur de démarrage : '+e.message;console.error(e)}

@@ -41,7 +41,12 @@ self.addEventListener('fetch',event=>{
   }catch{}
   try{
    const cached=await (await caches.open(cacheName)).match(request,{ignoreSearch:true});
-   if(cached)return cached;
+   if(cached){
+   if(!isHistory)return cached;
+   const headers=new Headers(cached.headers);
+   headers.set('X-IA-Loto-Cache','offline');
+   return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers});
+  }
   }catch{}
   return Response.error();
  })());

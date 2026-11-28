@@ -131,3 +131,43 @@ const wheelFields={
  }
  console.log('Système réducteur : coût, couverture, export et archives LOTO et EuroMillions vérifiés.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+const syncCode=app.slice(app.indexOf('async function sync('),app.indexOf('// Numerical recipes'));
+(async()=>{
+ const btn={disabled:false},status={};
+ let expire, merged=0, saved=0;
+ const row={date:'2026-11-25',nums:[9,15,20,35,42],extras:[8]};
+ const response=cached=>({
+  ok:true,
+  headers:new Headers(cached?{'X-IA-Loto-Cache':'offline'}:{}),
+  json:async()=>({draws:[row]})
+ });
+ const ctx={
+  $:id=>id==='syncBtn'?btn:status, currentSync:0, LASTSYNC:'last',
+  draws:[[row.date]], AbortController,
+  setTimeout(callback,ms){assert.equal(ms,4000);expire=callback;return 1;},
+  clearTimeout(){},
+  mergeRemote(){merged++;return {same:1,added:0};},
+  store(){saved++;},
+  fetch:async()=>({...response(false),json:()=>new Promise(()=>{})})
+ };
+ const sync=vm.runInNewContext(syncCode+'\nsync',ctx);
+ const pending=sync(true);
+ await Promise.resolve();
+ assert(btn.disabled);
+ expire();
+ await pending;
+ assert.match(status.textContent,/délai.*Historique local disponible/);
+ assert.equal(btn.disabled,false);
+ assert.equal(merged,0);
+ ctx.fetch=async()=>response(true);
+ await sync(true);
+ assert.match(status.textContent,/Copie hors ligne/);
+ assert.equal(merged,1);
+ assert.equal(saved,0);
+ ctx.fetch=async()=>response(false);
+ await sync(true);
+ assert.equal(status.className,'status good');
+ assert.equal(saved,1);
+ console.log('Synchronisation : délai sur le corps JSON, cache hors ligne et reprise vérifiés.');
+})().catch(error=>{console.error(error);process.exitCode=1;});
