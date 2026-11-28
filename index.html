@@ -34,7 +34,23 @@
  window.addEventListener('error', function (event) {
   var target = event.target;
   if (!event.message && (!target || target.tagName !== 'SCRIPT')) return;
-  var source = event.filename || (target && target.src) || 'index.html';
+  var source = event.filename || (target && target.src);
+  if (!source && !event.lineno && event.message === 'Script error.') {
+   var showNotice = function () {
+    if (document.getElementById('unidentifiedScriptError')) return;
+    var boot = document.getElementById('boot');
+    if (!boot) return;
+    var notice = document.createElement('p');
+    notice.id = 'unidentifiedScriptError';
+    notice.className = 'note';
+    notice.textContent = 'Le navigateur a signalé une erreur de script sans indiquer son origine.';
+    boot.insertAdjacentElement('afterend', notice);
+   };
+   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showNotice);
+   else showNotice();
+   return;
+  }
+  source = source || 'Source inconnue';
   var file = source.split(/[?#]/)[0].split('/').pop();
   var location = event.lineno ? ':' + event.lineno + (event.colno ? ':' + event.colno : '') : '';
   report(file + location + ' — ' + (event.message || 'script indisponible'));
